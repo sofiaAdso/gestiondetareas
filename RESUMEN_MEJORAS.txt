@@ -1,0 +1,395 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    RESUMEN DE MEJORAS IMPLEMENTADAS                           ║
+║                  Sistema de Gestión de Tareas - SENA                          ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📅 FECHA: 19 de Febrero de 2026
+🎯 OBJETIVO: Solucionar problemas con la creación de actividades
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ ARCHIVOS MODIFICADOS (3)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. ActividadDao.java
+   📍 src/main/java/com/sena/gestion/repository/ActividadDao.java
+
+   Mejoras:
+   ✓ Agregado logging detallado en el método crear()
+   ✓ Nuevo método crearYRetornarId() que retorna el ID de la actividad creada
+   ✓ Captura de errores SQL específicos (SQLState, ErrorCode)
+   ✓ System.out con formato claro para debugging
+
+   Ejemplo de log:
+   =================================================================
+   === CREANDO ACTIVIDAD ===
+   Usuario ID: 1
+   Título: Mi Actividad
+   Descripción: Esta es una prueba
+   Fecha Inicio: 2024-01-01
+   Fecha Fin: 2024-12-31
+   Prioridad: Media
+   Estado: En Progreso
+   Color: #3498db
+   Actividad creada: Éxito
+   Filas afectadas: 1
+   =================================================================
+
+2. ActividadServlet.java
+   📍 src/main/java/com/sena/gestion/controller/ActividadServlet.java
+
+   Mejoras:
+   ✓ Logging completo del flujo de creación
+   ✓ Validaciones mejoradas (título, fechas)
+   ✓ Mensajes de error descriptivos
+   ✓ Muestra todos los parámetros recibidos en consola
+
+   Ejemplo de log:
+   =================================================================
+   === SERVLET: INICIANDO CREACIÓN DE ACTIVIDAD ===
+   Usuario: admin (ID: 1)
+   Parámetros recibidos:
+     - titulo: Mi Actividad
+     - descripcion: Descripción de prueba
+     - fecha_inicio: 2024-01-01
+     - fecha_fin: 2024-12-31
+     - prioridad: Media
+     - estado: En Progreso
+     - color: #3498db
+   Objeto Actividad creado, intentando guardar en BD...
+   ✓ ACTIVIDAD CREADA EXITOSAMENTE
+   =================================================================
+
+3. formulario-actividad.jsp
+   📍 src/main/webapp/formulario-actividad.jsp
+
+   Mejoras:
+   ✓ Muestra mensajes de error visualmente (alertas rojas)
+   ✓ Validación JavaScript antes del envío
+   ✓ Console.log para debugging en el navegador
+   ✓ Códigos de error específicos con mensajes claros
+
+   Mensajes de error implementados:
+   • titulo_vacio → "El título es obligatorio"
+   • fecha_inicio_requerida → "Las fechas de inicio y fin son obligatorias"
+   • fecha_fin_requerida → "Las fechas de inicio y fin son obligatorias"
+   • fecha_invalida → "El formato de fecha es inválido"
+   • crear_actividad → "No se pudo crear la actividad..."
+   • datos_invalidos → "Los datos proporcionados son inválidos"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ ARCHIVOS NUEVOS CREADOS (5)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. DiagnosticoServlet.java ⭐ IMPORTANTE
+   📍 src/main/java/com/sena/gestion/controller/DiagnosticoServlet.java
+   🌐 URL: http://localhost:8080/SistemaGestionTareas/DiagnosticoServlet
+
+   Funcionalidades:
+   ✓ Verifica conexión a la base de datos
+   ✓ Muestra estructura de la tabla actividades
+   ✓ Lista usuarios disponibles
+   ✓ Muestra actividades existentes
+   ✓ Realiza prueba de creación en vivo
+   ✓ Interfaz web visual con colores
+
+   USO: Ejecuta este servlet ANTES de intentar crear actividades
+
+2. diagnosticar_actividades.sql
+   📍 diagnosticar_actividades.sql
+
+   Script SQL completo para diagnosticar:
+   ✓ Existencia de la tabla actividades
+   ✓ Estructura y columnas
+   ✓ Constraints y foreign keys
+   ✓ Usuarios disponibles
+   ✓ Actividades existentes
+   ✓ Permisos de la tabla
+
+3. compilar_desplegar.bat
+   📍 compilar_desplegar.bat
+
+   Script automático para:
+   ✓ Limpiar proyecto (mvn clean)
+   ✓ Compilar (mvn compile)
+   ✓ Empaquetar WAR (mvn package)
+   ✓ Mensajes visuales de progreso
+
+   USO: Doble click para compilar automáticamente
+
+4. GUIA_SOLUCION_PROBLEMAS_ACTIVIDADES.md
+   📍 GUIA_SOLUCION_PROBLEMAS_ACTIVIDADES.md
+
+   Guía completa con:
+   ✓ Lista de verificación paso a paso
+   ✓ Problemas comunes y soluciones
+   ✓ Scripts SQL de prueba
+   ✓ Interpretación de errores
+   ✓ Checklist final
+
+5. SOLUCION_CREAR_ACTIVIDADES.md
+   📍 SOLUCION_CREAR_ACTIVIDADES.md
+
+   Documentación detallada:
+   ✓ Resumen de todos los cambios
+   ✓ Instrucciones de uso
+   ✓ Guía de debugging
+   ✓ Mejores prácticas
+   ✓ Pruebas rápidas
+
+6. INICIO_RAPIDO.md ⭐ EMPIEZA AQUÍ
+   📍 INICIO_RAPIDO.md
+
+   Guía de inicio rápido:
+   ✓ Pasos inmediatos (4 pasos)
+   ✓ Verificación de BD
+   ✓ Despliegue de aplicación
+   ✓ Creación de primera actividad
+   ✓ Troubleshooting rápido
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 PRÓXIMOS PASOS PARA TI
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 1: VERIFICAR BASE DE DATOS (2 minutos)
+─────────────────────────────────────────────
+Abre pgAdmin o psql y ejecuta:
+
+    SELECT * FROM actividades LIMIT 1;
+    SELECT id, nombre, email FROM usuarios;
+
+Si la tabla NO existe:
+    Ejecuta: crear_tabla_actividades.sql
+
+Si NO hay usuarios:
+    Ve a: http://localhost:8080/SistemaGestionTareas/registro_usuario.jsp
+
+PASO 2: COMPILAR Y DESPLEGAR (3 minutos)
+─────────────────────────────────────────────
+Opción A - Con IDE:
+    1. Abre el proyecto en IntelliJ IDEA
+    2. Click en Run/Deploy
+    3. Espera que compile
+
+Opción B - Manual:
+    1. Doble click en: compilar_desplegar.bat
+    2. O ejecuta: mvn clean package
+    3. Copia el WAR a Tomcat/webapps/
+    4. Reinicia Tomcat
+
+PASO 3: EJECUTAR DIAGNÓSTICO (1 minuto)
+─────────────────────────────────────────────
+Abre tu navegador y ve a:
+
+    http://localhost:8080/SistemaGestionTareas/DiagnosticoServlet
+
+Este servlet te dirá si todo está OK o qué falta.
+
+PASO 4: CREAR TU PRIMERA ACTIVIDAD (2 minutos)
+─────────────────────────────────────────────
+1. Ve a: http://localhost:8080/SistemaGestionTareas
+2. Inicia sesión
+3. Click en "Gestionar Actividades"
+4. Click en "Nueva Actividad"
+5. Llena el formulario:
+   • Título: "Mi Primera Actividad" (obligatorio)
+   • Fecha Inicio: Hoy (obligatorio)
+   • Fecha Fin: Dentro de 30 días (obligatorio)
+   • Otros campos: Valores por defecto
+6. Click en "Crear Actividad"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔍 SI ALGO FALLA
+═══════════════════════════════════════════════════════════════════════════════
+
+1. REVISA LOS LOGS DE TOMCAT
+   Windows: [TOMCAT]\logs\catalina.out
+   Busca: "=== CREANDO ACTIVIDAD ==="
+
+2. ABRE LA CONSOLA DEL NAVEGADOR
+   Presiona F12 → Tab "Console"
+   Busca errores en rojo
+
+3. EJECUTA EL DIAGNOSTICO
+   http://localhost:8080/SistemaGestionTareas/DiagnosticoServlet
+   Te mostrará exactamente qué está mal
+
+4. CONSULTA LAS GUÍAS
+   • INICIO_RAPIDO.md - Inicio rápido
+   • GUIA_SOLUCION_PROBLEMAS_ACTIVIDADES.md - Troubleshooting
+   • SOLUCION_CREAR_ACTIVIDADES.md - Documentación completa
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 CARACTERÍSTICAS NUEVAS
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Logging Completo
+   Ahora puedes ver en la consola de Tomcat exactamente qué está pasando:
+   • Qué parámetros recibe el servlet
+   • Qué valores tiene el objeto Actividad
+   • Qué SQL se ejecuta
+   • Qué errores ocurren (si hay)
+
+✅ Validación Robusta
+   • Cliente: JavaScript valida antes de enviar
+   • Servidor: Java valida al recibir
+   • Base de datos: Constraints verifican integridad
+
+✅ Mensajes Claros
+   • Errores específicos en lugar de genéricos
+   • Alertas visuales en el formulario
+   • Códigos de error descriptivos
+
+✅ Herramienta de Diagnóstico
+   • Servlet web para verificar el sistema
+   • No necesitas acceso directo a la BD
+   • Interfaz visual fácil de leer
+
+✅ Documentación Completa
+   • 3 guías detalladas
+   • Scripts SQL de prueba
+   • Troubleshooting paso a paso
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 FLUJO DE CREACIÓN DE ACTIVIDAD
+═══════════════════════════════════════════════════════════════════════════════
+
+Usuario llena formulario
+         ↓
+Validación JavaScript (cliente)
+         ↓
+[SUBMIT] POST a ActividadServlet
+         ↓
+Servlet valida parámetros
+         ↓
+Crea objeto Actividad
+         ↓
+Llama a ActividadDao.crear()
+         ↓
+Ejecuta INSERT INTO actividades
+         ↓
+PostgreSQL guarda el registro
+         ↓
+Retorna éxito/error
+         ↓
+Redirect a lista con mensaje
+
+En cada paso hay LOGGING para que puedas ver exactamente dónde está el problema.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎓 LOGS QUE VERÁS
+═══════════════════════════════════════════════════════════════════════════════
+
+CASO EXITOSO:
+─────────────
+=== SERVLET: INICIANDO CREACIÓN DE ACTIVIDAD ===
+Usuario: admin (ID: 1)
+Parámetros recibidos:
+  - titulo: Mi Actividad
+  ...
+Objeto Actividad creado, intentando guardar en BD...
+=== CREANDO ACTIVIDAD ===
+Usuario ID: 1
+Título: Mi Actividad
+...
+Actividad creada: Éxito
+Filas afectadas: 1
+✓ ACTIVIDAD CREADA EXITOSAMENTE
+
+CASO CON ERROR:
+─────────────
+=== SERVLET: INICIANDO CREACIÓN DE ACTIVIDAD ===
+Usuario: admin (ID: 1)
+Parámetros recibidos:
+  - titulo:
+ERROR: Título vacío
+
+O si falla en BD:
+=== ERROR AL CREAR ACTIVIDAD ===
+Mensaje: ERROR: null value in column "titulo" violates not-null constraint
+SQL State: 23502
+Código de Error: 0
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ CHECKLIST FINAL
+═══════════════════════════════════════════════════════════════════════════════
+
+Antes de crear actividades, verifica:
+
+[ ] PostgreSQL está corriendo
+[ ] La base de datos "Gestiondetareas" existe
+[ ] La tabla "actividades" existe (ejecuta crear_tabla_actividades.sql)
+[ ] Hay al menos 1 usuario registrado
+[ ] El archivo application.properties tiene credenciales correctas
+[ ] Tomcat está corriendo
+[ ] La aplicación está desplegada (verifica webapps)
+[ ] Ejecutaste el DiagnosticoServlet
+[ ] Puedes hacer login en el sistema
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🆘 PRUEBA RÁPIDA SQL
+═══════════════════════════════════════════════════════════════════════════════
+
+Si quieres verificar que la BD funciona, ejecuta esto en psql/pgAdmin:
+
+-- Ver usuarios
+SELECT id, nombre, email FROM usuarios;
+
+-- Crear actividad de prueba (usa un ID de usuario real)
+INSERT INTO actividades
+(usuario_id, titulo, descripcion, fecha_inicio, fecha_fin, prioridad, estado, color)
+VALUES
+(1, 'TEST', 'Prueba', CURRENT_DATE, CURRENT_DATE + 30, 'Media', 'En Progreso', '#3498db')
+RETURNING id;
+
+-- Verificar
+SELECT * FROM actividades ORDER BY id DESC LIMIT 1;
+
+-- Limpiar
+DELETE FROM actividades WHERE titulo = 'TEST';
+
+Si este SQL funciona → El problema está en la aplicación Java
+Si este SQL falla → El problema está en la base de datos
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📞 SOPORTE
+═══════════════════════════════════════════════════════════════════════════════
+
+¿Sigues teniendo problemas?
+
+1. Ejecuta el DiagnosticoServlet y guarda el resultado
+2. Revisa los logs de Tomcat (catalina.out)
+3. Abre la consola del navegador (F12)
+4. Lee las guías:
+   • INICIO_RAPIDO.md
+   • GUIA_SOLUCION_PROBLEMAS_ACTIVIDADES.md
+   • SOLUCION_CREAR_ACTIVIDADES.md
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✨ ESTADO: LISTO PARA USAR
+═══════════════════════════════════════════════════════════════════════════════
+
+Todos los cambios están implementados.
+Todos los archivos están creados.
+Toda la documentación está completa.
+
+Solo necesitas:
+1. Compilar y desplegar
+2. Verificar la BD
+3. Ejecutar el diagnóstico
+4. ¡Crear tu primera actividad!
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    ¡TU SISTEMA ESTÁ LISTO! 🎉                                 ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+

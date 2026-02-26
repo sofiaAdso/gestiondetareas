@@ -1,0 +1,195 @@
+========================================
+PASOS FINALES - VISTA DE ACTIVIDADES
+========================================
+
+✅ CAMBIOS REALIZADOS:
+---------------------
+1. ActividadServlet.java - Mejorado con:
+   - Logs detallados en consola
+   - Manejo robusto de errores
+   - Nunca retorna null
+   - Mensajes de error informativos
+
+2. ActividadDao.java - Mejorado con:
+   - Cierre explícito de recursos (Connection, PreparedStatement, ResultSet)
+   - Logs de debug en cada operación
+   - Siempre retorna lista (nunca null)
+   - Mejor manejo de SQLException
+
+3. listar-actividades.jsp - Mejorado con:
+   - Inicialización segura de lista (nunca null)
+   - Mensajes de error informativos
+   - Información de debug del usuario actual
+
+========================================
+PASOS PARA HACER FUNCIONAR LA VISTA:
+========================================
+
+PASO 1: VERIFICAR BASE DE DATOS
+--------------------------------
+Ejecuta el archivo: DIAGNOSTICO_ACTIVIDADES.sql
+
+En pgAdmin o psql:
+1. Conecta a la base de datos "Gestiondetareas"
+2. Abre el archivo DIAGNOSTICO_ACTIVIDADES.sql
+3. Ejecuta todas las consultas
+4. Verifica que:
+   - Tabla 'actividades' existe
+   - Hay usuarios en 'usuarios'
+   - (Opcional) Hay actividades de prueba
+
+Si la tabla NO existe, ejecuta esto:
+
+CREATE TABLE actividades (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+    titulo VARCHAR(200) NOT NULL,
+    descripcion TEXT,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    prioridad VARCHAR(50) DEFAULT 'Media',
+    estado VARCHAR(50) DEFAULT 'Pendiente',
+    color VARCHAR(20) DEFAULT '#667eea',
+    fecha_creacion TIMESTAMP DEFAULT NOW()
+);
+
+Para crear datos de prueba:
+
+INSERT INTO actividades (usuario_id, titulo, descripcion, fecha_inicio, fecha_fin, prioridad, estado, color)
+VALUES
+(1, 'Proyecto Web', 'Desarrollar sistema de gestión', CURRENT_DATE, CURRENT_DATE + 30, 'Alta', 'En Progreso', '#667eea'),
+(1, 'Documentación', 'Crear manual de usuario', CURRENT_DATE, CURRENT_DATE + 14, 'Media', 'Pendiente', '#764ba2'),
+(1, 'Testing', 'Pruebas del sistema', CURRENT_DATE + 20, CURRENT_DATE + 35, 'Alta', 'Pendiente', '#f59e0b');
+
+PASO 2: RECOMPILAR EL PROYECTO
+-------------------------------
+Opción A - Usando el script:
+   Ejecuta: recompilar_actividades.bat
+
+Opción B - Desde el IDE:
+   IntelliJ IDEA: Ctrl+F9 o Build > Build Project
+   Eclipse: Ctrl+B o Project > Build All
+   NetBeans: Shift+F11 o Run > Clean and Build
+
+PASO 3: REINICIAR EL SERVIDOR
+------------------------------
+1. Detén el servidor (Tomcat/WildFly)
+2. Limpia el caché si es necesario
+3. Inicia el servidor nuevamente
+
+PASO 4: PROBAR LA FUNCIONALIDAD
+--------------------------------
+1. Abre el navegador
+2. Ve a: http://localhost:8080/SistemaGestionTareas/
+3. Inicia sesión
+4. Click en "📁 Actividades" en el menú lateral
+5. Deberías ver la lista de actividades
+
+PASO 5: REVISAR LOGS
+---------------------
+En la consola del servidor, busca:
+
+=== PROCESANDO LISTADO DE ACTIVIDADES ===
+Usuario: [nombre] (ID: [id])
+Rol: [rol]
+Total de actividades encontradas: [número]
+✓ Atributo 'listaActividades' establecido con [número] elementos
+✓ Redirigiendo a listar-actividades.jsp
+
+========================================
+SOLUCIÓN DE PROBLEMAS:
+========================================
+
+PROBLEMA 1: Pantalla en blanco
+SOLUCIÓN:
+- Revisa los logs del servidor
+- Busca errores SQLException o NullPointerException
+- Verifica que PostgreSQL está corriendo
+
+PROBLEMA 2: "No se encontraron actividades"
+SOLUCIÓN:
+- Verifica tu usuario en la BD: SELECT * FROM usuarios;
+- Si eres usuario normal, verifica: SELECT * FROM actividades WHERE usuario_id = TU_ID;
+- Si eres admin, verifica: SELECT * FROM actividades;
+- Crea datos de prueba si es necesario
+
+PROBLEMA 3: Error 404
+SOLUCIÓN:
+- Verifica que ActividadServlet.class existe en target/classes
+- Recompila el proyecto
+- Reinicia el servidor
+
+PROBLEMA 4: Error 500
+SOLUCIÓN:
+- Revisa el stack trace completo en los logs
+- Verifica la conexión a la base de datos
+- Ejecuta: SELECT * FROM actividades LIMIT 1; en psql
+
+========================================
+LOGS ESPERADOS (EN CONSOLA):
+========================================
+
+✓ CONEXIÓN CORRECTA:
+Driver PostgreSQL cargado correctamente
+Intentando conectar a la base de datos...
+¡Conexión exitosa y AutoCommit activo!
+
+✓ LISTADO CORRECTO:
+=== PROCESANDO LISTADO DE ACTIVIDADES ===
+Usuario: admin (ID: 1)
+Rol: Administrador
+=== LISTANDO TODAS LAS ACTIVIDADES (ADMIN) ===
+✓ Conexión establecida
+✓ Ejecutando consulta SQL...
+✓ Total de actividades encontradas: 3
+✓ Atributo 'listaActividades' establecido con 3 elementos
+✓ Redirigiendo a listar-actividades.jsp
+
+❌ ERROR DE CONEXIÓN:
+Error: Conexión nula desde Conexion.getConexion()
+-> Verifica que PostgreSQL está corriendo
+-> Verifica las credenciales en Conexion.java
+
+❌ ERROR DE TABLA:
+ERROR SQL al listar actividades:
+Mensaje: relation "actividades" does not exist
+-> Ejecuta el CREATE TABLE de este archivo
+
+========================================
+VERIFICACIÓN FINAL:
+========================================
+
+Marca cada item cuando lo completes:
+
+[ ] PostgreSQL está corriendo
+[ ] Base de datos "Gestiondetareas" existe
+[ ] Tabla "actividades" existe
+[ ] Hay al menos 1 usuario en la tabla usuarios
+[ ] Hay al menos 1 actividad de prueba
+[ ] Proyecto recompilado correctamente
+[ ] Servidor reiniciado
+[ ] Se puede acceder al login
+[ ] Se puede acceder al dashboard
+[ ] Click en "Actividades" muestra la vista
+[ ] Se ven las actividades correctamente
+[ ] Los logs muestran mensajes de éxito
+
+========================================
+CONTACTO Y SOPORTE:
+========================================
+
+Si después de seguir TODOS estos pasos aún no funciona:
+
+1. Copia los logs COMPLETOS de la consola del servidor
+2. Anota el mensaje de error EXACTO que ves
+3. Indica en qué paso exactamente falla
+4. Verifica que seguiste TODOS los pasos en orden
+
+ARCHIVOS IMPORTANTES:
+- DIAGNOSTICO_ACTIVIDADES.sql - Para verificar la BD
+- recompilar_actividades.bat - Para recompilar
+- Este archivo - Guía completa
+
+Última actualización: 2026-02-23
+Estado: ✅ Correcciones aplicadas - Listo para probar
+

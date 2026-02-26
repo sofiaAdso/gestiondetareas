@@ -1,0 +1,99 @@
+/* --- COMPLEMENTOS PARA COMPLETAR LA INTERFAZ --- */
+
+    /* Estilos para Iconos en el Menú */
+    .sidebar nav a i {
+        margin-right: 15px;
+        font-size: 1.1rem;
+        width: 25px;
+        text-align: center;
+    }
+
+    /* Efectos de Hover en la Tabla (Mejora la experiencia de usuario) */
+    tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    tbody tr:hover {
+        background-color: #fcfaff; /* Un tono muy suave de morado al pasar el mouse */
+    }
+
+    /* Estilos para la Columna de Acciones (Botones de Editar/Eliminar) */
+    .actions-cell {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .btn-delete {
+        color: #ff7675;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 6px 10px;
+        border-radius: 8px;
+        transition: 0.3s;
+    }
+
+    .btn-delete:hover {
+        background: #fff5f5;
+        transform: scale(1.05);
+    }
+
+    /* DISEÑO RESPONSIVO (Obligatorio según el plan SENA) */
+    @media (max-width: 1024px) {
+        .sidebar {
+            width: 80px;
+            padding: 30px 10px;
+        }
+
+        .sidebar h2, .sidebar nav a span {
+            display: none; /* Oculta texto para dejar solo iconos en tablets */
+        }
+
+        .main-content {
+            margin-left: 100px;
+            width: calc(100% - 140px);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column; /* Apila los campos en celulares */
+            gap: 0;
+        }
+
+        .header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .table-container {
+            overflow-x: auto; /* Permite scroll horizontal en tablas largas */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-content {
+            width: 95%;
+            margin: 10% auto;
+            padding: 20px;
+        }
+    }
+
+    /* Animación de entrada para Modales (Mejora la presentación) */
+    @keyframes modalSlideDown {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-content {
+        animation: modalSlideDown 0.4s ease-out;
+    }
+
+    /* Estilo para los pies de página o textos de ayuda */
+    .form-help {
+        font-size: 0.75rem;
+        color: #b2bec3;
+        margin-top: -15px;
+        margin-bottom: 15px;
+    }
+</style>
