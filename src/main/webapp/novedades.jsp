@@ -7,17 +7,15 @@
     Usuario user = (Usuario) session.getAttribute("usuario");
     if (user == null) { response.sendRedirect("index.jsp"); return; }
 
-    // ✅ Bloquear acceso a usuarios que no sean Administrador
     boolean isAdmin = "Administrador".equals(user.getRol());
     if (!isAdmin) { response.sendRedirect("dashboard.jsp"); return; }
 
-    // Lista de novedades cargadas por el servlet (NovedadServlet?accion=listar)
     List<Novedad> listaNovedades = (List<Novedad>) request.getAttribute("listaNovedades");
     if (listaNovedades == null) listaNovedades = new ArrayList<>();
 
-    // Mensaje de éxito o error tras guardar
-    String msg   = request.getParameter("msg");
-    String error = request.getParameter("error");
+    String msg     = request.getParameter("msg");
+    String error   = request.getParameter("error");
+    String excelId = request.getParameter("excelId");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -302,16 +300,6 @@
             border-color: var(--primary); outline: none;
             box-shadow: 0 0 0 3px rgba(102,126,234,0.10);
         }
-        .fgroup input:invalid:not(:placeholder-shown),
-        .fgroup select:invalid,
-        .fgroup textarea:invalid:not(:placeholder-shown) {
-            border-color: var(--danger);
-            box-shadow: 0 0 0 3px rgba(239,68,68,0.10);
-        }
-        .fgroup input:valid:not(:placeholder-shown),
-        .fgroup textarea:valid:not(:placeholder-shown) {
-            border-color: var(--success);
-        }
         .fgroup textarea { resize: vertical; min-height: 70px; }
 
         .viabilidad-toggle { display: flex; gap: 10px; }
@@ -480,7 +468,7 @@
                         <td>
                             <div class="table-actions">
                                 <button class="btn-icon view" title="Ver detalle" onclick="verDetalle(<%= n.getId() %>)"><i class="fas fa-eye"></i></button>
-                                <button class="btn-icon print" title="Imprimir formato" onclick="imprimirFormato(<%= n.getId() %>)"><i class="fas fa-print"></i></button>
+                                <button class="btn-icon print" title="Descargar Excel" onclick="descargarExcel(<%= n.getId() %>)"><i class="fas fa-file-excel"></i></button>
                                 <button class="btn-icon del" title="Eliminar" onclick="confirmarEliminar(<%= n.getId() %>)"><i class="fas fa-trash"></i></button>
                             </div>
                         </td>
@@ -494,6 +482,7 @@
         </div>
     </div>
 
+    <%-- Modal de registro --%>
     <div class="modal-overlay" id="modalNovedad">
         <div class="modal-box">
             <div class="modal-header">
@@ -511,17 +500,17 @@
                         <div class="fila col2">
                             <div class="fgroup">
                                 <label>Regional *</label>
-                                <input type="text" name="regional" placeholder="Ej: Antioquia" required minlength="2" maxlength="50" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-]*" title="Solo se permiten letras, espacios y guiones">
+                                <input type="text" name="regional" placeholder="Ej: Antioquia" required minlength="2" maxlength="50">
                             </div>
                             <div class="fgroup">
                                 <label>Centro de Formación *</label>
-                                <input type="text" name="centroFormacion" placeholder="Nombre del centro" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.]*" title="Solo se permiten letras, números, espacios, guiones y puntos">
+                                <input type="text" name="centroFormacion" placeholder="Nombre del centro" required minlength="3" maxlength="100">
                             </div>
                         </div>
                         <div class="fila col2">
                             <div class="fgroup">
                                 <label>Programa de Formación *</label>
-                                <input type="text" name="programaFormacion" placeholder="Nombre del programa" required minlength="3" maxlength="150" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.\y]*" title="Solo se permiten letras, números, espacios, guiones, puntos y 'y'">
+                                <input type="text" name="programaFormacion" placeholder="Nombre del programa" required minlength="3" maxlength="150">
                             </div>
                             <div class="fgroup">
                                 <label>Código del Programa</label>
@@ -535,15 +524,15 @@
                         <div class="fila col3">
                             <div class="fgroup">
                                 <label>Identificación del Ambiente *</label>
-                                <input type="text" name="ambiente" placeholder="Ej: Aula 301" required minlength="2" maxlength="50" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.]*" title="Solo se permiten letras, números, espacios, guiones y puntos">
+                                <input type="text" name="ambiente" placeholder="Ej: Aula 301" required minlength="2" maxlength="50">
                             </div>
                             <div class="fgroup">
                                 <label>Localización</label>
-                                <input type="text" name="localizacion" placeholder="Bloque / Piso" maxlength="50" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.,/]*" title="Solo se permiten letras, números, espacios y caracteres de ubicación">
+                                <input type="text" name="localizacion" placeholder="Bloque / Piso" maxlength="50">
                             </div>
                             <div class="fgroup">
                                 <label>Denominación</label>
-                                <input type="text" name="denominacion" placeholder="Ej: Laboratorio de Sistemas" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.]*" title="Solo se permiten letras, números, espacios, guiones y puntos">
+                                <input type="text" name="denominacion" placeholder="Ej: Laboratorio de Sistemas" maxlength="100">
                             </div>
                         </div>
                         <div class="fila col2">
@@ -599,13 +588,12 @@
                         <div class="firmas-row">
                             <div class="firma-box">
                                 <label>Instructor que realiza el reporte</label>
-                                <input type="text" name="nombreInstructor"
-                                       value="<%= user.getNombre() %>" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*" title="Solo se permiten letras, espacios y acentos">
+                                <input type="text" name="nombreInstructor" value="<%= user.getNombre() %>" required minlength="3" maxlength="100">
                                 <small style="color:var(--muted);font-size:0.75rem;margin-top:6px;display:block;">Ciudad y fecha se toman del sistema</small>
                             </div>
                             <div class="firma-box">
                                 <label>Coordinador que recibe el reporte</label>
-                                <input type="text" name="nombreCoordinador" placeholder="Nombre del coordinador" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*" title="Solo se permiten letras, espacios y acentos">
+                                <input type="text" name="nombreCoordinador" placeholder="Nombre del coordinador" required minlength="3" maxlength="100">
                             </div>
                         </div>
                     </div>
@@ -627,12 +615,13 @@
     </div>
 
     <script>
+        // ── Fecha hoy ──
         const hoyISO = new Date().toISOString().split('T')[0];
         const inputFecha = document.getElementById('inputFecha');
         inputFecha.value = hoyISO;
-        inputFecha.min = hoyISO;
         inputFecha.max = '2099-12-31';
 
+        // ── Modal ──
         function abrirModal() {
             document.getElementById('modalNovedad').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -645,23 +634,25 @@
             if (e.target === this) cerrarModal();
         });
 
+        // ── Viabilidad ──
         function setViabilidad(valor) {
             document.getElementById('inputViabilidad').value = valor;
             document.getElementById('btnApto').classList.toggle('active', valor === 'Apto');
             document.getElementById('btnNoApto').classList.toggle('active', valor === 'No Apto');
         }
 
+        // ── Placeholder dinámico ──
         const placeholders = {
-            'Ambiente':    'Describe el estado del ambiente, aula o laboratorio...',
-            'Equipos':     'Describe el problema con equipos, máquinas o mobiliario...',
-            'Materiales':  'Describe la novedad con los materiales de formación...',
-            'Biblioteca':  'Describe la novedad en biblioteca o bibliografía...'
+            'Ambiente':   'Describe el estado del ambiente, aula o laboratorio...',
+            'Equipos':    'Describe el problema con equipos, máquinas o mobiliario...',
+            'Materiales': 'Describe la novedad con los materiales de formación...',
+            'Biblioteca': 'Describe la novedad en biblioteca o bibliografía...'
         };
         function actualizarPlaceholder(sel) {
-            const txt = document.getElementById('txtDetalle');
-            txt.placeholder = placeholders[sel.value] || 'Describe la novedad presentada...';
+            document.getElementById('txtDetalle').placeholder = placeholders[sel.value] || 'Describe la novedad presentada...';
         }
 
+        // ── Búsqueda ──
         function filtrarTabla() {
             const q = document.getElementById('buscar').value.toLowerCase();
             document.querySelectorAll('#tbodyNovedades tr').forEach(tr => {
@@ -669,6 +660,7 @@
             });
         }
 
+        // ── Acciones tabla ──
         function confirmarEliminar(id) {
             Swal.fire({
                 title: '¿Eliminar novedad?',
@@ -679,9 +671,7 @@
                 confirmButtonText: 'Sí, eliminar',
                 cancelButtonText: 'Cancelar'
             }).then(r => {
-                if (r.isConfirmed) {
-                    window.location.href = 'NovedadServlet?accion=eliminar&id=' + id;
-                }
+                if (r.isConfirmed) window.location.href = 'NovedadServlet?accion=eliminar&id=' + id;
             });
         }
 
@@ -689,32 +679,28 @@
             window.location.href = 'NovedadServlet?accion=ver&id=' + id;
         }
 
-        function imprimirFormato(id) {
-            window.open('NovedadServlet?accion=imprimir&id=' + id, '_blank');
+        // ── Descargar Excel desde la tabla ──
+        function descargarExcel(id) {
+            window.location.href = 'GenerarExcelNovedad?id=' + id;
         }
 
+        // ── Stats ──
         function calcularStats() {
             let equipos = 0, aptos = 0, noAptos = 0;
             document.querySelectorAll('#tbodyNovedades tr').forEach(tr => {
-                const badges = tr.querySelectorAll('.badge');
-                badges.forEach(b => {
+                tr.querySelectorAll('.badge').forEach(b => {
                     if (b.classList.contains('badge-equipo'))  equipos++;
                     if (b.classList.contains('badge-apto'))    aptos++;
                     if (b.classList.contains('badge-noapto'))  noAptos++;
                 });
             });
-            document.getElementById('cntEquipos').textContent = equipos;
-            document.getElementById('cntAptos').textContent   = aptos;
+            document.getElementById('cntEquipos').textContent  = equipos;
+            document.getElementById('cntAptos').textContent    = aptos;
             document.getElementById('cntNoAptos').textContent  = noAptos;
         }
         calcularStats();
 
-        <% if ("ok".equals(msg)) { %>
-        mostrarToast('✅ Novedad registrada correctamente', false);
-        <% } else if (error != null) { %>
-        mostrarToast('❌ Error al registrar la novedad', true);
-        <% } %>
-
+        // ── Toast ──
         function mostrarToast(texto, esError) {
             const t = document.createElement('div');
             t.className = 'toast' + (esError ? ' error' : '');
@@ -723,62 +709,48 @@
             setTimeout(() => t.remove(), 4000);
         }
 
-        function esNombreValido(valor) {
-            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/.test(valor);
-        }
-        function esTextoValido(valor) {
-            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.]*$/.test(valor);
-        }
-        function esUbicacionValida(valor) {
-            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.,/]*$/.test(valor);
-        }
+        <% if ("ok".equals(msg)) { %>
+        mostrarToast('✅ Novedad registrada correctamente', false);
+        <% } else if (error != null) { %>
+        mostrarToast('❌ Error al registrar la novedad', true);
+        <% } %>
 
+        // ── ✅ Descarga automática del Excel al registrar ──
+        <% if (excelId != null && !excelId.isEmpty()) { %>
+        window.onload = function() {
+            setTimeout(function() {
+                window.location.href = 'GenerarExcelNovedad?id=<%= excelId %>';
+            }, 800);
+        };
+        <% } %>
+
+        // ── Validación formulario ──
         document.getElementById('formNovedad').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const regional = document.querySelector('[name="regional"]').value.trim();
-            const centroFormacion = document.querySelector('[name="centroFormacion"]').value.trim();
+            const regional          = document.querySelector('[name="regional"]').value.trim();
+            const centroFormacion   = document.querySelector('[name="centroFormacion"]').value.trim();
             const programaFormacion = document.querySelector('[name="programaFormacion"]').value.trim();
-            const ambiente = document.querySelector('[name="ambiente"]').value.trim();
-            const fechaReporte = document.querySelector('[name="fechaReporte"]').value.trim();
-            const tipoNovedad = document.querySelector('[name="tipoNovedad"]').value.trim();
-            const detalleNovedad = document.querySelector('[name="detalleNovedad"]').value.trim();
-            const nombreInstructor = document.querySelector('[name="nombreInstructor"]').value.trim();
+            const ambiente          = document.querySelector('[name="ambiente"]').value.trim();
+            const fechaReporte      = document.querySelector('[name="fechaReporte"]').value.trim();
+            const tipoNovedad       = document.querySelector('[name="tipoNovedad"]').value.trim();
+            const detalleNovedad    = document.querySelector('[name="detalleNovedad"]').value.trim();
+            const nombreInstructor  = document.querySelector('[name="nombreInstructor"]').value.trim();
             const nombreCoordinador = document.querySelector('[name="nombreCoordinador"]').value.trim();
+            const codigoPrograma    = document.querySelector('[name="codigoPrograma"]').value.trim();
 
-            if (!regional) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Regional es obligatorio.' }); return false; }
-            if (!centroFormacion) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Centro de Formación es obligatorio.' }); return false; }
-            if (!programaFormacion) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Programa de Formación es obligatorio.' }); return false; }
-            if (!ambiente) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Identificación del Ambiente es obligatorio.' }); return false; }
-            if (!fechaReporte) { Swal.fire({ icon:'error', title:'Validación', text:'La Fecha del Reporte es obligatoria.' }); return false; }
-            if (!tipoNovedad) { Swal.fire({ icon:'error', title:'Validación', text:'Debes seleccionar el Tipo de Novedad.' }); return false; }
-            if (!detalleNovedad) { Swal.fire({ icon:'error', title:'Validación', text:'El Detalle de la Novedad es obligatorio.' }); return false; }
-            if (!nombreInstructor) { Swal.fire({ icon:'error', title:'Validación', text:'El nombre del Instructor es obligatorio.' }); return false; }
-            if (!nombreCoordinador) { Swal.fire({ icon:'error', title:'Validación', text:'El nombre del Coordinador es obligatorio.' }); return false; }
+            if (!regional)          { Swal.fire({ icon:'error', title:'Validación', text:'El campo Regional es obligatorio.' }); return; }
+            if (!centroFormacion)   { Swal.fire({ icon:'error', title:'Validación', text:'El campo Centro de Formación es obligatorio.' }); return; }
+            if (!programaFormacion) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Programa de Formación es obligatorio.' }); return; }
+            if (!ambiente)          { Swal.fire({ icon:'error', title:'Validación', text:'El campo Identificación del Ambiente es obligatorio.' }); return; }
+            if (!fechaReporte)      { Swal.fire({ icon:'error', title:'Validación', text:'La Fecha del Reporte es obligatoria.' }); return; }
+            if (!tipoNovedad)       { Swal.fire({ icon:'error', title:'Validación', text:'Debes seleccionar el Tipo de Novedad.' }); return; }
+            if (!detalleNovedad)    { Swal.fire({ icon:'error', title:'Validación', text:'El Detalle de la Novedad es obligatorio.' }); return; }
+            if (!nombreInstructor)  { Swal.fire({ icon:'error', title:'Validación', text:'El nombre del Instructor es obligatorio.' }); return; }
+            if (!nombreCoordinador) { Swal.fire({ icon:'error', title:'Validación', text:'El nombre del Coordinador es obligatorio.' }); return; }
 
-            if (regional.length < 2 || regional.length > 50) { Swal.fire({ icon:'error', title:'Validación', text:'Regional debe tener entre 2 y 50 caracteres.' }); return false; }
-            if (centroFormacion.length < 3 || centroFormacion.length > 100) { Swal.fire({ icon:'error', title:'Validación', text:'Centro de Formación debe tener entre 3 y 100 caracteres.' }); return false; }
-            if (programaFormacion.length < 3 || programaFormacion.length > 150) { Swal.fire({ icon:'error', title:'Validación', text:'Programa de Formación debe tener entre 3 y 150 caracteres.' }); return false; }
-            if (ambiente.length < 2 || ambiente.length > 50) { Swal.fire({ icon:'error', title:'Validación', text:'Identificación del Ambiente debe tener entre 2 y 50 caracteres.' }); return false; }
-            if (detalleNovedad.length < 10 || detalleNovedad.length > 1000) { Swal.fire({ icon:'error', title:'Validación', text:'Detalle de Novedad debe tener entre 10 y 1000 caracteres.' }); return false; }
-            if (nombreInstructor.length < 3 || nombreInstructor.length > 100) { Swal.fire({ icon:'error', title:'Validación', text:'Nombre del Instructor debe tener entre 3 y 100 caracteres.' }); return false; }
-            if (nombreCoordinador.length < 3 || nombreCoordinador.length > 100) { Swal.fire({ icon:'error', title:'Validación', text:'Nombre del Coordinador debe tener entre 3 y 100 caracteres.' }); return false; }
-
-            if (!esTextoValido(regional)) { Swal.fire({ icon:'error', title:'Validación', text:'Regional: Solo se permiten letras, espacios y guiones.' }); return false; }
-            if (!esTextoValido(centroFormacion)) { Swal.fire({ icon:'error', title:'Validación', text:'Centro de Formación: Solo se permiten letras, números, espacios, guiones y puntos.' }); return false; }
-            if (!esTextoValido(programaFormacion)) { Swal.fire({ icon:'error', title:'Validación', text:'Programa de Formación: Solo se permiten letras, números, espacios, guiones y puntos.' }); return false; }
-            if (!esTextoValido(ambiente)) { Swal.fire({ icon:'error', title:'Validación', text:'Identificación del Ambiente: Solo se permiten letras, números, espacios, guiones y puntos.' }); return false; }
-            if (!esNombreValido(nombreInstructor)) { Swal.fire({ icon:'error', title:'Validación', text:'Nombre del Instructor: Solo se permiten letras, espacios y acentos.' }); return false; }
-            if (!esNombreValido(nombreCoordinador)) { Swal.fire({ icon:'error', title:'Validación', text:'Nombre del Coordinador: Solo se permiten letras, espacios y acentos.' }); return false; }
-
-            const fechaSeleccionada = new Date(fechaReporte);
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-            fechaSeleccionada.setHours(0, 0, 0, 0);
-            if (fechaSeleccionada < hoy) { Swal.fire({ icon:'error', title:'Validación', text:'La fecha del reporte no puede ser en el pasado.' }); return false; }
-
-            const codigoPrograma = document.querySelector('[name="codigoPrograma"]').value.trim();
-            if (codigoPrograma && !/^\d+$/.test(codigoPrograma)) { Swal.fire({ icon:'error', title:'Validación', text:'El Código del Programa debe contener solo números.' }); return false; }
+            if (detalleNovedad.length < 10) { Swal.fire({ icon:'error', title:'Validación', text:'El detalle debe tener al menos 10 caracteres.' }); return; }
+            if (codigoPrograma && !/^\d+$/.test(codigoPrograma)) { Swal.fire({ icon:'error', title:'Validación', text:'El Código del Programa debe contener solo números.' }); return; }
 
             this.submit();
         });
