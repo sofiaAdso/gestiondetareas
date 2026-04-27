@@ -1,530 +1,228 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.sena.gestion.model.*" %>
-<%@ page import="java.util.List" %>
+<%@ page import="java.util.List, java.util.ArrayList" %>
 <%
     Usuario user = (Usuario) session.getAttribute("usuario");
     if (user == null) { response.sendRedirect("index.jsp"); return; }
+
     Actividad actividadEditar = (Actividad) request.getAttribute("actividad");
     boolean esEdicion = (actividadEditar != null);
     List<Usuario> listaUsuarios = (List<Usuario>) request.getAttribute("listaUsuarios");
-
-    // Obtener parámetros de error
-    String error = request.getParameter("error");
-    String errorMsg = "";
-    if (error != null) {
-        switch(error) {
-            case "titulo_vacio":
-                errorMsg = "El título es obligatorio";
-                break;
-            case "fechas_requeridas":
-            case "fecha_inicio_requerida":
-            case "fecha_fin_requerida":
-                errorMsg = "Las fechas de inicio y fin son obligatorias";
-                break;
-            case "fecha_invalida":
-                errorMsg = "El formato de fecha es inválido";
-                break;
-            case "crear_actividad":
-                errorMsg = "No se pudo crear la actividad. Verifica los datos e intenta nuevamente";
-                break;
-            case "datos_invalidos":
-                errorMsg = "Los datos proporcionados son inválidos";
-                break;
-            default:
-                errorMsg = "Ocurrió un error. Intenta nuevamente";
-        }
-    }
+    if (listaUsuarios == null) listaUsuarios = new ArrayList<>();
 %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title><%= esEdicion ? "Editar" : "Nueva" %> Actividad</title>
+    <title><%= esEdicion ? "Editar" : "Nueva" %> Actividad | SENA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+        :root {
+            --sena-purple: #391d5d;
+            --sena-blue: #5c6bc0;
+            --bg-gray: #f8fafc;
+            --section-bg: #f3f6ff; /* Color de los recuadros de sección */
         }
-        .form-container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+
+        body { background: #e2e8f0; height: 100vh; overflow: hidden; display: flex; }
+
+        /* ── FONDO SIMULADO (Dashboard) ── */
+        .sidebar-bg { width: 260px; background: var(--sena-purple); height: 100vh; filter: blur(2px); }
+        .content-bg { flex: 1; background: #f0f2f5; padding: 30px; filter: blur(3px); }
+        .card-mock { background: white; height: 200px; border-radius: 15px; margin-bottom: 20px; opacity: 0.6; }
+
+        /* ── CAPA OVERLAY (Modal) ── */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
         }
-        h2 {
-            color: #667eea;
-            margin-bottom: 30px;
-            font-size: 2rem;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+
+        .modal-card {
+            background: white; width: 850px; max-height: 92vh;
+            border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            display: flex; flex-direction: column; animation: scaleIn 0.3s ease;
         }
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Header */
+        .modal-header {
+            padding: 25px 35px; border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .alert-error {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
+        .header-title { color: var(--sena-blue); font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+        .btn-close {
+            width: 35px; height: 35px; border-radius: 50%; border: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; text-decoration: none; transition: 0.2s;
         }
-        .form-group {
-            margin-bottom: 20px;
+        .btn-close:hover { background: #f1f5f9; color: #ef4444; }
+
+        /* Form Body */
+        .modal-body { padding: 30px 35px; overflow-y: auto; }
+
+        /* RECUADROS DE SECCIÓN (Igual a tu imagen de referencia) */
+        .form-section {
+            background: var(--section-bg);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #eef2ff;
         }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+
+        .section-title {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--sena-blue); font-size: 0.75rem; font-weight: 900;
+            text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.5px;
         }
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            transition: all 0.3s;
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .fgroup { display: flex; flex-direction: column; gap: 6px; }
+        .fgroup.full { grid-column: span 2; }
+
+        .fgroup label { font-size: 0.85rem; font-weight: 700; color: #475569; }
+        .fgroup input, .fgroup select, .fgroup textarea {
+            padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 10px;
+            font-size: 0.95rem; background: white; transition: 0.2s;
         }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        .fgroup input:focus { border-color: var(--sena-blue); outline: none; box-shadow: 0 0 0 3px rgba(92,107,192,0.1); }
+
+        /* Footer */
+        .modal-footer {
+            padding: 20px 35px; border-top: 1px solid #eee;
+            display: flex; justify-content: flex-end; gap: 15px;
         }
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            font-family: inherit;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .color-picker-group {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .color-picker-group input[type="color"] {
-            width: 80px;
-            height: 45px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .btn {
-            padding: 14px 28px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }
-        .btn-submit {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            margin-top: 10px;
-        }
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        .btn-back {
-            background: #6c757d;
-            color: white;
-            text-decoration: none;
-            margin-bottom: 20px;
-            display: inline-flex;
-        }
-        .btn-back:hover {
-            background: #5a6268;
-        }
-        .char-counter {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-            text-align: right;
-        }
-        .required {
-            color: #dc3545;
-        }
-...        .user-select-wrapper {
-            background: linear-gradient(135deg, #e8f4f8 0%, #f0e6f6 100%);
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #b8daff;
-        }
-        .user-select-wrapper select {
-            background: white;
-            border: 2px solid #667eea;
-        }
-        .user-select-wrapper label {
-            color: #495057;
-            font-size: 1.05rem;
-        }
-        .user-select-wrapper small {
-            color: #495057 !important;
-        }
+
+        .btn { padding: 12px 35px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; border: none; }
+        .btn-cancel { background: #f8fafc; color: #64748b; text-decoration: none; display: flex; align-items: center; }
+        .btn-cancel:hover { background: #f1f5f9; }
+        .btn-save { background: #5c6bc0; color: white; box-shadow: 0 10px 15px -3px rgba(92,107,192,0.3); }
+        .btn-save:hover { background: #4a59a7; transform: translateY(-1px); }
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <a href="ActividadServlet?accion=listar" class="btn btn-back">
-            <i class="fas fa-arrow-left"></i> Volver
-        </a>
 
-        <h2>
-            <i class="fas fa-<%= esEdicion ? "edit" : "plus-circle" %>"></i>
-            <%= esEdicion ? "Editar Actividad" : "Nueva Actividad" %>
-        </h2>
+    <!-- Dashboard de fondo -->
+    <div class="sidebar-bg"></div>
+    <div class="content-bg">
+        <div class="card-mock"></div>
+        <div class="card-mock"></div>
+    </div>
 
-        <% if (error != null && !errorMsg.isEmpty()) { %>
-        <div class="alert alert-error">
-            <i class="fas fa-exclamation-circle"></i>
-            <strong><%= errorMsg %></strong>
+    <!-- Modal Principal -->
+    <div class="overlay">
+        <div class="modal-card">
+
+            <div class="modal-header">
+                <div class="header-title">
+                    <i class="fas fa-file-signature"></i>
+                    <%= esEdicion ? "Editar Actividad" : "Nueva Actividad" %>
+                </div>
+                <a href="ActividadServlet?accion=listar" class="btn-close"><i class="fas fa-times"></i></a>
+            </div>
+
+            <div class="modal-body">
+                <form action="ActividadServlet" method="POST" id="formActividad">
+                    <input type="hidden" name="accion" value="<%= esEdicion ? "actualizar" : "crear" %>">
+                    <% if (esEdicion) { %><input type="hidden" name="id" value="<%= actividadEditar.getId() %>"><% } %>
+
+                    <!-- Estado automático y oculto -->
+                    <input type="hidden" name="estado" value="<%= esEdicion ? actividadEditar.getEstado() : "Pendiente" %>">
+
+                    <!-- SECCIÓN 1: INFORMACIÓN GENERAL -->
+                    <div class="form-section">
+                        <div class="section-title"><i class="fas fa-info-circle"></i> Información General</div>
+                        <div class="input-grid">
+                            <div class="fgroup full">
+                                <label>Título de la Actividad *</label>
+                                <input type="text" name="titulo" required placeholder="Ej: Mantenimiento de Servidores"
+                                       value="<%= esEdicion ? actividadEditar.getTitulo() : "" %>">
+                            </div>
+                            <div class="fgroup full">
+                                <label>Descripción / Detalle de la Novedad</label>
+                                <textarea name="descripcion" rows="3" placeholder="Describe la actividad o novedad presentada..."><%= esEdicion ? actividadEditar.getDescripcion() : "" %></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: IDENTIFICACIÓN -->
+                    <div class="form-section">
+                        <div class="section-title"><i class="fas fa-user-tag"></i> Asignación y Prioridad</div>
+                        <div class="input-grid">
+                            <div class="fgroup">
+                                <label>Asignar a Instructor/Usuario *</label>
+                                <select name="usuario_id" required>
+                                    <% for (Usuario u : listaUsuarios) { %>
+                                    <option value="<%= u.getId() %>" <%= (esEdicion && u.getId() == actividadEditar.getUsuario_id()) ? "selected" : "" %>>
+                                        <%= u.getNombre() != null ? u.getNombre() : u.getUsername() %>
+                                    </option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="fgroup">
+                                <label>Nivel de Prioridad *</label>
+                                <select name="prioridad" required>
+                                    <option value="Baja" <%= esEdicion && "Baja".equals(actividadEditar.getPrioridad()) ? "selected" : "" %>>Baja</option>
+                                    <option value="Media" <%= (!esEdicion || "Media".equals(actividadEditar.getPrioridad())) ? "selected" : "" %>>Media</option>
+                                    <option value="Alta" <%= esEdicion && "Alta".equals(actividadEditar.getPrioridad()) ? "selected" : "" %>>Alta</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 3: TIEMPOS -->
+                    <div class="form-section">
+                        <div class="section-title"><i class="fas fa-calendar-check"></i> Tiempos y Plazos</div>
+                        <div class="input-grid">
+                            <div class="fgroup">
+                                <label>Fecha de Inicio *</label>
+                                <input type="date" name="fecha_inicio" id="fechaInicio" required
+                                       value="<%= esEdicion ? actividadEditar.getFecha_inicio() : "" %>">
+                            </div>
+                            <div class="fgroup">
+                                <label>Fecha de Vencimiento *</label>
+                                <input type="date" name="fecha_fin" id="fechaFin" required
+                                       value="<%= esEdicion ? actividadEditar.getFecha_fin() : "" %>">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <a href="ActividadServlet?accion=listar" class="btn btn-cancel">Cancelar</a>
+                <button type="submit" form="formActividad" class="btn btn-save">
+                    <%= esEdicion ? "Guardar Cambios" : "Crear" %>
+                </button>
+            </div>
         </div>
-        <% } %>
-
-        <form action="ActividadServlet" method="POST" id="formActividad">
-            <input type="hidden" name="accion" value="<%= esEdicion ? "actualizar" : "crear" %>">
-            <% if(esEdicion){ %>
-                <input type="hidden" name="id" value="<%= actividadEditar.getId() %>">
-            <% } %>
-
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-heading"></i>
-                    Título <span class="required">*</span>
-                </label>
-                <input
-                    type="text"
-                    id="titulo"
-                    name="titulo"
-                    maxlength="200"
-                    value="<%= esEdicion ? actividadEditar.getTitulo() : "" %>"
-                    required
-                    placeholder="Ej: Proyecto de Desarrollo Web">
-                <div class="char-counter" id="contador-titulo">0 / 200 caracteres</div>
-            </div>
-
-            <% if (listaUsuarios != null && !listaUsuarios.isEmpty()) { %>
-            <div class="form-group user-select-wrapper">
-                <label>
-                    <i class="fas fa-user-circle"></i>
-                    Asignar a Usuario <span class="required">*</span>
-                </label>
-                <select name="usuario_id" required style="padding: 12px; font-size: 1rem;">
-                    <%
-                    int usuarioAsignadoId = esEdicion ? actividadEditar.getUsuario_id() : user.getId();
-                    for(Usuario u : listaUsuarios) {
-                    %>
-                        <option value="<%= u.getId() %>" <%= u.getId() == usuarioAsignadoId ? "selected" : "" %>>
-                            <%= u.getUsername() %><%= u.getEmail() != null && !u.getEmail().isEmpty() ? " (" + u.getEmail() + ")" : "" %>
-                        </option>
-                    <% } %>
-                </select>
-                <small style="display: block; margin-top: 8px; font-weight: 500;">
-                    <i class="fas fa-info-circle"></i> Selecciona el usuario al que deseas asignar esta actividad
-                </small>
-            </div>
-            <% } else { %>
-                <!-- Si no hay lista de usuarios, usar el usuario actual -->
-                <input type="hidden" name="usuario_id" value="<%= user.getId() %>">
-            <% } %>
-
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-align-left"></i>
-                    Descripción
-                </label>
-                <textarea
-                    id="descripcion"
-                    name="descripcion"
-                    maxlength="500"
-                    placeholder="Describe los objetivos de esta actividad..."><%= esEdicion && actividadEditar.getDescripcion() != null ? actividadEditar.getDescripcion() : "" %></textarea>
-                <div class="char-counter" id="contador-descripcion">0 / 500 caracteres</div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>
-                        <i class="far fa-calendar"></i>
-                        Fecha Inicio <span class="required">*</span>
-                    </label>
-                    <input
-                        type="date"
-                        id="fecha_inicio"
-                        name="fecha_inicio"
-                        value="<%= esEdicion && actividadEditar.getFecha_inicio() != null ? actividadEditar.getFecha_inicio() : "" %>"
-                        required>
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <i class="far fa-calendar-check"></i>
-                        Fecha Fin <span class="required">*</span>
-                    </label>
-                    <input
-                        type="date"
-                        id="fecha_fin"
-                        name="fecha_fin"
-                        value="<%= esEdicion && actividadEditar.getFecha_fin() != null ? actividadEditar.getFecha_fin() : "" %>"
-                        required>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Prioridad <span class="required">*</span>
-                    </label>
-                    <select name="prioridad" required>
-                        <option value="Baja" <%= esEdicion && "Baja".equals(actividadEditar.getPrioridad()) ? "selected" : "" %>>Baja</option>
-                        <option value="Media" <%= esEdicion && "Media".equals(actividadEditar.getPrioridad()) ? "selected" : "" %> <%= !esEdicion ? "selected" : "" %>>Media</option>
-                        <option value="Alta" <%= esEdicion && "Alta".equals(actividadEditar.getPrioridad()) ? "selected" : "" %>>Alta</option>
-                    </select>
-                </div>
-
-                <% if (!"Administrador".equals(user.getRol())) { %>
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-check-circle"></i>
-                        ¿Marcar como Completada?
-                    </label>
-                    <select name="estado" required style="padding: 12px; font-size: 1rem;">
-                        <option value="En Progreso" <%= !esEdicion || (esEdicion && !"Completada".equals(actividadEditar.getEstado())) ? "selected" : "" %>>
-                            No, aún en progreso
-                        </option>
-                        <option value="Completada" <%= esEdicion && "Completada".equals(actividadEditar.getEstado()) ? "selected" : "" %>>
-                            Sí, marcar como completada
-                        </option>
-                    </select>
-                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
-                        <i class="fas fa-info-circle"></i> Puedes marcar la actividad como completada cuando hayas terminado todas las tareas
-                    </small>
-                </div>
-                <% } else { %>
-                    <!-- Admin: No ve ni puede modificar el estado, se establece por defecto -->
-                    <input type="hidden" name="estado" value="<%= esEdicion ? actividadEditar.getEstado() : "En Progreso" %>">
-                <% } %>
-            </div>
-
-            <div class="form-group" style="<%= "Administrador".equals(user.getRol()) ? "" : "display:none;" %>">
-                <!-- Espacio para mantener el layout -->
-            </div>
-
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-palette"></i>
-                    Color de Identificación
-                </label>
-                <div class="color-picker-group">
-                    <input
-                        type="color"
-                        id="color"
-                        name="color"
-                        value="<%= esEdicion && actividadEditar.getColor() != null ? actividadEditar.getColor() : "#3498db" %>">
-                    <span id="color-hex" style="font-family: monospace; font-weight: bold;">
-                        <%= esEdicion && actividadEditar.getColor() != null ? actividadEditar.getColor() : "#3498db" %>
-                    </span>
-                </div>
-                <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 5px;">
-                    <i class="fas fa-info-circle"></i> Este color ayudará a identificar visualmente esta actividad
-                </small>
-            </div>
-
-            <button type="submit" class="btn btn-submit">
-                <i class="fas fa-save"></i>
-                <%= esEdicion ? "Guardar Cambios" : "Crear Actividad" %>
-            </button>
-        </form>
     </div>
 
     <script>
-        // Contador de caracteres
-        function actualizarContador(inputId, contadorId, maxLength) {
-            const input = document.getElementById(inputId);
-            const contador = document.getElementById(contadorId);
+        // Funcionalidad de validación
+        const fIni = document.getElementById('fechaInicio');
+        const fFin = document.getElementById('fechaFin');
 
-            function actualizar() {
-                const length = input.value.length;
-                contador.textContent = length + ' / ' + maxLength + ' caracteres';
-            }
-
-            input.addEventListener('input', actualizar);
-            actualizar();
-        }
-
-        // Actualizar color hex
-        const colorPicker = document.getElementById('color');
-        const colorHex = document.getElementById('color-hex');
-
-        colorPicker.addEventListener('input', function() {
-            colorHex.textContent = this.value.toUpperCase();
+        // Al cambiar inicio, la fecha fin no puede ser anterior
+        fIni.addEventListener('change', function() {
+            if(this.value) fFin.min = this.value;
         });
 
-        // Validación de fechas
-        const fechaInicio = document.getElementById('fecha_inicio');
-        const fechaFin = document.getElementById('fecha_fin');
-
-        // Establecer la fecha mínima de inicio como la fecha actual
-        const fechaHoy = new Date();
-        fechaHoy.setHours(0, 0, 0, 0);
-        const fechaHoyStr = fechaHoy.toISOString().split('T')[0];
-
-        // Solo establecer min si no estamos editando o si la fecha de inicio es futura
-        <% if (!esEdicion) { %>
-        fechaInicio.setAttribute('min', fechaHoyStr);
-        <% } else { %>
-        // En modo edición, permitir la fecha actual como mínimo
-        const fechaInicioActual = fechaInicio.value;
-        if (fechaInicioActual) {
-            const fechaInicioDate = new Date(fechaInicioActual + 'T00:00:00');
-            if (fechaInicioDate >= fechaHoy) {
-                fechaInicio.setAttribute('min', fechaHoyStr);
-            }
-        }
-        <% } %>
-
-        fechaInicio.addEventListener('change', function() {
-            const fechaSeleccionada = new Date(this.value + 'T00:00:00');
-
-            // Validar que la fecha de inicio no sea anterior a hoy
-            if (fechaSeleccionada < fechaHoy) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Fecha inválida',
-                    text: 'La fecha de inicio no puede ser anterior al día actual'
-                });
-                this.value = '';
-                fechaFin.removeAttribute('min');
-                return;
-            }
-
-            // Si hay una fecha de fin, validar que sea posterior a la fecha de inicio
-            if (fechaFin.value && fechaFin.value <= this.value) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Fecha inválida',
-                    text: 'La fecha de fin debe ser posterior a la fecha de inicio'
-                });
-                fechaFin.value = '';
-            }
-
-            // Establecer la fecha mínima de fin como un día después de la fecha de inicio
-            if (this.value) {
-                const fechaInicioObj = new Date(this.value + 'T00:00:00');
-                fechaInicioObj.setDate(fechaInicioObj.getDate() + 1);
-                const fechaMinimaFin = fechaInicioObj.toISOString().split('T')[0];
-                fechaFin.setAttribute('min', fechaMinimaFin);
-            }
-        });
-
-        fechaFin.addEventListener('change', function() {
-            if (fechaInicio.value && this.value <= fechaInicio.value) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Fecha inválida',
-                    text: 'La fecha de fin debe ser posterior a la fecha de inicio'
-                });
-                this.value = '';
-            }
-        });
-
-        // Validación antes del envío
         document.getElementById('formActividad').addEventListener('submit', function(e) {
-            const titulo = document.getElementById('titulo').value.trim();
-            const fechaIni = fechaInicio.value;
-            const fechaF = fechaFin.value;
-
-            console.log('Validando formulario antes de enviar...');
-            console.log('Título:', titulo);
-            console.log('Fecha Inicio:', fechaIni);
-            console.log('Fecha Fin:', fechaF);
-
-            if (!titulo) {
+            if(fFin.value && fIni.value && fFin.value < fIni.value) {
                 e.preventDefault();
                 Swal.fire({
                     icon: 'error',
-                    title: 'Campo requerido',
-                    text: 'El título es obligatorio'
+                    title: 'Error en fechas',
+                    text: 'La fecha de vencimiento debe ser posterior a la de inicio.',
+                    confirmButtonColor: '#5c6bc0'
                 });
-                return false;
             }
-
-            if (!fechaIni || !fechaF) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Campos requeridos',
-                    text: 'Las fechas de inicio y fin son obligatorias'
-                });
-                return false;
-            }
-
-            // Validar que la fecha de inicio no sea anterior a hoy (solo en creación)
-            <% if (!esEdicion) { %>
-            const fechaInicioDate = new Date(fechaIni + 'T00:00:00');
-            const fechaActual = new Date();
-            fechaActual.setHours(0, 0, 0, 0);
-
-            if (fechaInicioDate < fechaActual) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Fecha inválida',
-                    text: 'La fecha de inicio no puede ser anterior al día actual'
-                });
-                return false;
-            }
-            <% } %>
-
-            // Validar que la fecha de fin sea posterior a la fecha de inicio
-            if (fechaF <= fechaIni) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Fechas inválidas',
-                    text: 'La fecha de fin debe ser posterior a la fecha de inicio'
-                });
-                return false;
-            }
-
-            console.log('✓ Validación exitosa, enviando formulario...');
-        });
-
-        // Inicializar contadores
-        document.addEventListener('DOMContentLoaded', function() {
-            actualizarContador('titulo', 'contador-titulo', 200);
-            actualizarContador('descripcion', 'contador-descripcion', 500);
         });
     </script>
 </body>
 </html>
-

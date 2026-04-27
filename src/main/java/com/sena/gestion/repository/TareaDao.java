@@ -3,7 +3,9 @@ package com.sena.gestion.repository;
 import com.sena.gestion.model.Tarea;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,8 +17,9 @@ public class TareaDao {
 
     public List<Tarea> listar() {
         List<Tarea> lista = new ArrayList<>();
-        // Se agregaron nombres de Actividad, Usuario y Categoría
-        String sql = "SELECT t.*, a.titulo AS nombre_act, u.username AS nombre_usuario, c.nombre AS nombre_cat " +
+        String sql = "SELECT t.id, t.titulo, t.descripcion, t.prioridad, t.estado, t.fecha_inicio, " +
+                "t.fecha_vencimiento, t.actividad_id, t.usuario_id, t.categoria_id, " +
+                "a.titulo AS nombre_act, u.username AS nombre_usuario, c.nombre AS nombre_cat " +
                 "FROM tareas t " +
                 "INNER JOIN actividades a ON t.actividad_id = a.id " +
                 "INNER JOIN usuarios u ON t.usuario_id = u.id " +
@@ -30,7 +33,7 @@ public class TareaDao {
                 Tarea t = mapearTarea(rs);
                 t.setNombreActividad(rs.getString("nombre_act"));
                 t.setNombreUsuario(rs.getString("nombre_usuario"));
-                t.setNombreCategoria(rs.getString("nombre_cat"));
+                t.setNombreCategoria(rs.getString("nombre_cat") != null ? rs.getString("nombre_cat") : "Sin Categoría");
                 lista.add(t);
             }
         } catch (SQLException e) {
@@ -41,7 +44,9 @@ public class TareaDao {
 
     public List<Tarea> listarPorUsuario(int idUsuario) {
         List<Tarea> lista = new ArrayList<>();
-        String sql = "SELECT t.*, a.titulo AS nombre_act, c.nombre AS nombre_cat " +
+        String sql = "SELECT t.id, t.titulo, t.descripcion, t.prioridad, t.estado, t.fecha_inicio, " +
+                "t.fecha_vencimiento, t.actividad_id, t.usuario_id, t.categoria_id, " +
+                "a.titulo AS nombre_act, c.nombre AS nombre_cat " +
                 "FROM tareas t " +
                 "INNER JOIN actividades a ON t.actividad_id = a.id " +
                 "LEFT JOIN categorias c ON t.categoria_id = c.id " +
@@ -55,7 +60,7 @@ public class TareaDao {
                 while (rs.next()) {
                     Tarea t = mapearTarea(rs);
                     t.setNombreActividad(rs.getString("nombre_act"));
-                    t.setNombreCategoria(rs.getString("nombre_cat"));
+                    t.setNombreCategoria(rs.getString("nombre_cat") != null ? rs.getString("nombre_cat") : "Sin Categoría");
                     lista.add(t);
                 }
             }
@@ -67,7 +72,9 @@ public class TareaDao {
 
     public List<Tarea> listarPorActividad(int actividadId) {
         List<Tarea> lista = new ArrayList<>();
-        String sql = "SELECT t.*, a.titulo AS nombre_act, c.nombre AS nombre_cat " +
+        String sql = "SELECT t.id, t.titulo, t.descripcion, t.prioridad, t.estado, t.fecha_inicio, " +
+                "t.fecha_vencimiento, t.actividad_id, t.usuario_id, t.categoria_id, " +
+                "a.titulo AS nombre_act, c.nombre AS nombre_cat " +
                 "FROM tareas t " +
                 "INNER JOIN actividades a ON t.actividad_id = a.id " +
                 "LEFT JOIN categorias c ON t.categoria_id = c.id " +
@@ -82,7 +89,7 @@ public class TareaDao {
                 while (rs.next()) {
                     Tarea t = mapearTarea(rs);
                     t.setNombreActividad(rs.getString("nombre_act"));
-                    t.setNombreCategoria(rs.getString("nombre_cat"));
+                    t.setNombreCategoria(rs.getString("nombre_cat") != null ? rs.getString("nombre_cat") : "Sin Categoría");
                     lista.add(t);
                 }
             }
@@ -93,7 +100,9 @@ public class TareaDao {
     }
 
     public Tarea obtenerPorId(int id) {
-        String sql = "SELECT * FROM tareas WHERE id = ?";
+        String sql = "SELECT id, titulo, descripcion, prioridad, estado, fecha_inicio, " +
+                "fecha_vencimiento, actividad_id, usuario_id, categoria_id " +
+                "FROM tareas WHERE id = ?";
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -110,13 +119,26 @@ public class TareaDao {
 
     // --- MÉTODOS DE ESCRITURA (CUD) ---
 
+    /**
+     * MODO NUEVO: Método específico para el botón de cambio de estado rápido.
+     */
+    public boolean actualizarEstado(int id, String nuevoEstado) {
+        String sql = "UPDATE tareas SET estado = ? WHERE id = ?";
+        try (Connection con = Conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nuevoEstado);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al actualizar solo el estado de la tarea ID: " + id, e);
+            return false;
+        }
+    }
+
     public boolean registrar(Tarea t) {
         String sql = "INSERT INTO tareas (titulo, descripcion, prioridad, estado, fecha_inicio, " +
-                "fecha_vencimiento, actividad_id, usuario_id, categoria_id, completada, notas) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        // Log para que verifiques en la consola de NetBeans/IntelliJ si los IDs llegan bien
-        System.out.println("DAO: Registrando Tarea -> Actividad: " + t.getActividad_id() + ", Usuario: " + t.getUsuario_id());
+                "fecha_vencimiento, actividad_id, usuario_id, categoria_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -133,19 +155,16 @@ public class TareaDao {
             if (t.getCategoria_id() > 0) ps.setInt(9, t.getCategoria_id());
             else ps.setNull(9, Types.INTEGER);
 
-            ps.setBoolean(10, t.isCompletada());
-            ps.setString(11, t.getNotas());
-
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error al registrar nueva tarea en DB", e);
+            LOGGER.log(Level.SEVERE, "Error al registrar nueva tarea", e);
             return false;
         }
     }
 
     public boolean actualizar(Tarea t) {
         String sql = "UPDATE tareas SET titulo=?, descripcion=?, prioridad=?, estado=?, fecha_inicio=?, " +
-                "fecha_vencimiento=?, actividad_id=?, usuario_id=?, categoria_id=?, completada=?, notas=? " +
+                "fecha_vencimiento=?, actividad_id=?, usuario_id=?, categoria_id=? " +
                 "WHERE id=?";
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -162,9 +181,7 @@ public class TareaDao {
             if (t.getCategoria_id() > 0) ps.setInt(9, t.getCategoria_id());
             else ps.setNull(9, Types.INTEGER);
 
-            ps.setBoolean(10, t.isCompletada());
-            ps.setString(11, t.getNotas());
-            ps.setInt(12, t.getId());
+            ps.setInt(10, t.getId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -185,6 +202,8 @@ public class TareaDao {
         }
     }
 
+    // --- UTILIDADES ---
+
     private Tarea mapearTarea(ResultSet rs) throws SQLException {
         Tarea t = new Tarea();
         t.setId(rs.getInt("id"));
@@ -197,9 +216,7 @@ public class TareaDao {
         t.setActividad_id(rs.getInt("actividad_id"));
         t.setUsuario_id(rs.getInt("usuario_id"));
         t.setCategoria_id(rs.getInt("categoria_id"));
-        t.setCompletada(rs.getBoolean("completada"));
-        t.setNotas(rs.getString("notas"));
-        t.setFecha_creacion(rs.getTimestamp("fecha_creacion"));
+
         return t;
     }
 }

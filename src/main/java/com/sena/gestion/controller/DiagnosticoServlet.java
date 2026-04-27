@@ -49,7 +49,7 @@ public class DiagnosticoServlet extends HttpServlet {
         out.println("</head>");
         out.println("<body>");
         out.println("<div class='container'>");
-        out.println("<h1>🔍 Diagnóstico del Sistema de Actividades</h1>");
+        out.println("<h1> Diagnóstico del Sistema de Actividades</h1>");
 
         try (Connection conn = Conexion.getConexion()) {
             if (conn != null) {

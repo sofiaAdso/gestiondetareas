@@ -1,99 +1,124 @@
-/* --- COMPLEMENTOS PARA COMPLETAR LA INTERFAZ --- */
+/* --- COMPLEMENTOS DE INTERFAZ Y RESPONSIVIDAD --- */
 
-    /* Estilos para Iconos en el Menú */
-    .sidebar nav a i {
-        margin-right: 15px;
-        font-size: 1.1rem;
-        width: 25px;
-        text-align: center;
+/* 1. Iconos y Navegación Lateral */
+.sidebar nav a i {
+    margin-right: 15px;
+    font-size: 1.1rem;
+    width: 25px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.sidebar nav a:hover i {
+    transform: scale(1.2); /* Pequeño salto del icono al pasar el mouse */
+}
+
+/* 2. Feedback Visual en Tablas */
+tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: #fcfaff; /* Tono morado muy sutil */
+    cursor: pointer;
+}
+
+/* 3. Estilos de Botones de Acción (Editar/Eliminar) */
+.actions-cell {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-delete {
+    color: #ff7675;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.btn-delete:hover {
+    background: #fff5f5;
+    border-color: #ff7675;
+    transform: scale(1.05);
+}
+
+/* 4. DISEÑO RESPONSIVO (Adaptación a Tablets y Celulares) */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 80px;
+        padding: 30px 10px;
     }
 
-    /* Efectos de Hover en la Tabla (Mejora la experiencia de usuario) */
-    tbody tr {
-        transition: background-color 0.2s ease;
+    /* Ocultamos los textos para que la barra sea minimalista con puros iconos */
+    .sidebar h2,
+    .sidebar nav a span,
+    .sidebar .user-info p {
+        display: none;
     }
 
-    tbody tr:hover {
-        background-color: #fcfaff; /* Un tono muy suave de morado al pasar el mouse */
+    .container {
+        margin-left: 100px;
+        width: calc(100% - 120px);
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin-left: 0;
+        width: 100%;
+        padding: 15px;
     }
 
-    /* Estilos para la Columna de Acciones (Botones de Editar/Eliminar) */
-    .actions-cell {
-        display: flex;
-        gap: 12px;
-        align-items: center;
+    .form-row {
+        flex-direction: column; /* Campos uno debajo del otro */
+        gap: 0;
     }
 
-    .btn-delete {
-        color: #ff7675;
-        text-decoration: none;
-        font-weight: 600;
-        padding: 6px 10px;
-        border-radius: 8px;
-        transition: 0.3s;
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
     }
 
-    .btn-delete:hover {
-        background: #fff5f5;
-        transform: scale(1.05);
-    }
-
-    /* DISEÑO RESPONSIVO (Obligatorio según el plan SENA) */
-    @media (max-width: 1024px) {
-        .sidebar {
-            width: 80px;
-            padding: 30px 10px;
-        }
-
-        .sidebar h2, .sidebar nav a span {
-            display: none; /* Oculta texto para dejar solo iconos en tablets */
-        }
-
-        .main-content {
-            margin-left: 100px;
-            width: calc(100% - 140px);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .form-row {
-            flex-direction: column; /* Apila los campos en celulares */
-            gap: 0;
-        }
-
-        .header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 15px;
-        }
-
-        .table-container {
-            overflow-x: auto; /* Permite scroll horizontal en tablas largas */
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .modal-content {
-            width: 95%;
-            margin: 10% auto;
-            padding: 20px;
-        }
-    }
-
-    /* Animación de entrada para Modales (Mejora la presentación) */
-    @keyframes modalSlideDown {
-        from { opacity: 0; transform: translateY(-30px); }
-        to { opacity: 1; transform: translateY(0); }
+    /* Scroll horizontal para que la tabla no rompa el diseño en celulares */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .modal-content {
-        animation: modalSlideDown 0.4s ease-out;
+        width: 95%;
+        margin: 5% auto;
+        padding: 20px;
     }
+}
 
-    /* Estilo para los pies de página o textos de ayuda */
-    .form-help {
-        font-size: 0.75rem;
-        color: #b2bec3;
-        margin-top: -15px;
-        margin-bottom: 15px;
+/* 5. Animación de Entrada (Modales y Cards) */
+@keyframes modalSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
     }
-</style>
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-content, .actividad-card {
+    animation: modalSlideDown 0.4s ease-out;
+}
+
+/* 6. Textos de Ayuda y Pie de Formulario */
+.form-help {
+    font-size: 0.75rem;
+    color: #b2bec3;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    display: block;
+    font-style: italic;
+}

@@ -205,7 +205,7 @@
             </div>
 
             <button type="submit" class="btn-register">
-                <i class="fas fa-check"></i> Crear Mi Cuenta
+                <i class="fas fa-check"></i> Crear Cuenta
             </button>
         </form>
     </div>

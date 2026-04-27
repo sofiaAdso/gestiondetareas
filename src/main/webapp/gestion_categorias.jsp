@@ -23,15 +23,40 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #ffffff; display: flex; }
-        .sidebar { width: 250px; height: 100vh; background-color: #6a11cb; color: white; padding: 20px; position: fixed; }
-        .sidebar h2 { font-size: 1.2rem; border-bottom: 1px solid #8e44ad; padding-bottom: 10px; }
-        .sidebar a { display: block; color: white; text-decoration: none; padding: 10px 0; transition: 0.3s; }
-        .sidebar a:hover { color: #d1d1d1; padding-left: 10px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; display: flex; }
 
-        .main-content { margin-left: 280px; padding: 20px 40px; width: calc(100% - 320px); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0e6ff; padding-bottom: 20px; margin-bottom: 30px; }
-        .header h1 { color: #6a11cb; margin: 0; }
+        /* SIDEBAR */
+        .sidebar {
+            width: 300px; background: linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%);
+            position: fixed; height: 100vh; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .sidebar-header { padding: 30px 20px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h2 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; margin: 0; }
+        .user-profile { padding: 15px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); color: white; }
+        .nav-menu { padding: 20px 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 15px 25px;
+            color: rgba(255,255,255,0.9); text-decoration: none; transition: all 0.3s; font-size: 0.95rem;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background: rgba(255,255,255,0.15); color: white; border-left: 4px solid white; }
+        .nav-item i { font-size: 1.1rem; width: 25px; }
+        .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 20px; }
+        .logout-btn { background: rgba(239, 68, 68, 0.2) !important; color: white !important; margin: 10px 20px; border-radius: 8px; }
+
+        .main-content { margin-left: 300px; padding: 0; width: calc(100% - 300px); background: #f5f5f5; }
+        .page-header {
+            background: white;
+            padding: 30px 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-header h1 { color: #7c3aed; margin: 0; font-size: 2rem; font-weight: 700; }
+
+        .content-area { padding: 40px; }
 
         .btn-add {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -115,28 +140,43 @@
         td { padding: 12px; border-bottom: 1px solid #eee; color: #444; }
         tr:hover { background-color: #f9f6ff; }
 
-        .btn-edit {
-            background: #2196F3;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 5px;
+        .btn-edit, .btn-delete {
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            border: 2px solid;
             cursor: pointer;
-            font-size: 13px;
-            margin-right: 5px;
         }
-        .btn-edit:hover { background: #1976D2; }
+
+        .btn-edit {
+            color: #007bff;
+            border-color: #007bff;
+            background: transparent;
+        }
+        .btn-edit:hover {
+            background: #007bff;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
 
         .btn-delete {
-            background: #f44336;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 13px;
+            color: #dc3545;
+            border-color: #dc3545;
+            background: transparent;
         }
-        .btn-delete:hover { background: #d32f2f; }
+        .btn-delete:hover {
+            background: #dc3545;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
 
         .char-counter {
             font-size: 12px;
@@ -149,26 +189,10 @@
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>GESTIÓN DE TAREAS</h2>
-        <p>Bienvenido</p>
-        <nav>
-            <a href="dashboard.jsp"><i class="fas fa-home"></i> Inicio</a>
-            <a href="Tareaservlet?accion=listar"><i class="fas fa-tasks"></i> Tareas</a>
-            <a href="ActividadServlet?accion=listar"><i class="fas fa-folder-open"></i> Actividades</a>
-            <a href="Tareaservlet?accion=reportes"><i class="fas fa-chart-bar"></i> Reportes</a>
-            <a href="Categoriaservlet?accion=listar">
-                <i class="fas fa-tags"></i> Gestión de Categorías
-            </a>
-            <a href="registro_usuario.jsp"><i class="fas fa-users"></i> Gestión de Usuarios</a>
-            <a href="index.jsp" style="color: #ff4d4d; margin-top: 50px; display: block;">
-                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-            </a>
-        </nav>
-    </div>
+    <jsp:include page="components/header.jsp" />
 
     <div class="main-content">
-        <div class="header">
+        <div class="page-header">
             <h1><i class="fas fa-tags"></i> Gestión de Categorías</h1>
             <% if (!esEdicion) { %>
                 <button onclick="mostrarFormulario()" class="btn-add" id="btnMostrarForm">
@@ -177,6 +201,7 @@
             <% } %>
         </div>
 
+        <div class="content-area">
         <!-- Formulario de nueva/editar categoría -->
         <div class="form-card" id="formCard" style="<%= esEdicion ? "" : "display: none;" %>">
             <h3>
@@ -235,7 +260,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Descripción</th>
-                    <th style="width: 180px; text-align: center;">Acciones</th>
+                    <th style="width: 240px; text-align: center;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -244,12 +269,14 @@
                         <td><strong>${categoria.nombre}</strong></td>
                         <td>${categoria.descripcion != null && !categoria.descripcion.isEmpty() ? categoria.descripcion : '<i style="color: #999;">Sin descripción</i>'}</td>
                         <td style="text-align: center;">
-                            <a href="Categoriaservlet?accion=editar&id=${categoria.id}" class="btn-edit">
-                                <i class="fas fa-edit"></i> Editar
-                            </a>
-                            <button onclick="confirmarEliminar(${categoria.id}, '${fn:escapeXml(categoria.nombre)}')" class="btn-delete">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <a href="Categoriaservlet?accion=editar&id=${categoria.id}" class="btn-edit">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <button onclick="confirmarEliminar(${categoria.id}, '${fn:escapeXml(categoria.nombre)}')" class="btn-delete">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 </c:forEach>
@@ -387,6 +414,7 @@
             actualizarContador('descripcion', 'contador-descripcion', 200);
         };
     </script>
+    </div>
 </body>
 </html>
 

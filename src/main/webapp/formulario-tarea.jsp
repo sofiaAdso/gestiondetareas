@@ -10,6 +10,7 @@
     Tarea tareaEditar = (Tarea) request.getAttribute("tarea");
     boolean esEdicion = (tareaEditar != null);
 
+    // Listas enviadas por el Tareaservlet
     List<Categoria> listaCategorias = (List<Categoria>) request.getAttribute("listaCategorias");
     if(listaCategorias == null) listaCategorias = new ArrayList<>();
 
@@ -18,7 +19,7 @@
 
     List<Usuario> listaUsuarios = (List<Usuario>) request.getAttribute("listaUsuarios");
 
-    // Lógica de preselección robusta
+    // Lógica para saber si venimos desde una actividad específica
     String idActividadParam = request.getParameter("idActividad");
     Object idActividadAttr = request.getAttribute("idActividadPre");
     Integer idActPre = null;
@@ -32,43 +33,57 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title><%= esEdicion ? "Editar" : "Nueva" %> Tarea</title>
+    <title><%= esEdicion ? "Editar" : "Nueva" %> Tarea | Gestión SENA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex; justify-content: center; padding: 20px; min-height: 100vh;
+            display: flex; justify-content: center; align-items: center; padding: 20px; min-height: 100vh;
         }
         .form-container {
-            background: white; padding: 35px; border-radius: 20px;
-            width: 100%; max-width: 600px; box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            background: white; padding: 30px; border-radius: 20px;
+            width: 100%; max-width: 650px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
-        h2 { color: #667eea; text-align: center; margin-bottom: 25px; font-size: 28px; font-weight: 700; }
-        .form-group { margin-bottom: 20px; }
-        label { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px; color: #333; font-size: 14px; }
+        h2 { color: #667eea; text-align: center; margin-bottom: 20px; font-weight: 700; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; color: #444; font-size: 0.9rem; }
         input, select, textarea {
-            width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0;
-            border-radius: 10px; font-size: 14px; transition: all 0.3s ease;
+            width: 100%; padding: 10px 15px; border: 2px solid #eee;
+            border-radius: 8px; font-size: 14px; transition: 0.3s;
         }
-        input:focus, select:focus, textarea:focus {
-            outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+        input:focus, select:focus, textarea:focus { border-color: #667eea; outline: none; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .btn-submit {
-            width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px;
-            font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;
-            margin-top: 25px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700;
+            margin-top: 20px; transition: 0.3s;
         }
+        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
         .btn-back {
-            display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px;
-            padding: 10px 20px; background: #f8f9fa; color: #667eea; text-decoration: none;
-            font-weight: 600; border-radius: 10px; border: 1px solid #667eea;
+            text-decoration: none;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
-        .char-counter { font-size: 11px; color: #999; text-align: right; margin-top: 4px; }
-        .limit { color: #e74c3c; font-weight: bold; }
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        .actividad-info {
+            background: #f0f4ff; padding: 10px; border-radius: 8px;
+            border-left: 4px solid #667eea; margin-bottom: 15px; font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -80,69 +95,73 @@
         %>
         <a href="<%= urlVolver %>" class="btn-back"><i class="fas fa-arrow-left"></i> Volver</a>
 
-        <h2><%= esEdicion ? "Editar Tarea" : "Nueva Tarea" %></h2>
+        <h2><i class="fas fa-tasks"></i> <%= esEdicion ? "Editar Tarea" : "Nueva Tarea" %></h2>
 
         <form action="Tareaservlet" method="POST">
             <input type="hidden" name="accion" value="<%= esEdicion ? "actualizar" : "registrar" %>">
             <% if(esEdicion){ %><input type="hidden" name="txtid" value="<%= tareaEditar.getId() %>"><% } %>
 
-            <%-- SOLUCIÓN AL ERROR: Campo oculto si el select está disabled --%>
-            <% if (!esEdicion && idActPre != null) { %>
+            <%-- Campo oculto para garantizar el envío del actividad_id cuando el select está disabled --%>
+            <% if (idActPre != null) { %>
                 <input type="hidden" name="txtactividad" value="<%= idActPre %>">
+            <% } else if (esEdicion) { %>
+                <input type="hidden" name="txtactividad" value="<%= tareaEditar.getActividad_id() %>">
             <% } %>
 
-            <%-- Título --%>
             <div class="form-group">
-                <label><i class="fas fa-heading"></i> Título *</label>
-                <input type="text" id="titulo" name="txttitulo" maxlength="60"
+                <label>Título de la Tarea *</label>
+                <input type="text" name="txttitulo" placeholder="Ej: Realizar pruebas unitarias"
                        value="<%= esEdicion ? tareaEditar.getTitulo() : "" %>" required>
-                <div class="char-counter" id="contador-titulo">0 / 60</div>
             </div>
 
-            <%-- Actividad --%>
             <div class="form-group">
-                <label><i class="fas fa-folder-open"></i> Actividad *</label>
-                <%-- Si es nuevo y viene de una actividad, desactivamos el select pero el hidden de arriba envía el dato --%>
-                <select <%= (!esEdicion && idActPre != null) ? "disabled" : "name='txtactividad'" %> required>
-                    <option value="">-- Seleccionar Actividad --</option>
+                <label>Actividad Relacionada *</label>
+                <%-- name siempre presente; disabled solo cuando viene con actividad preseleccionada --%>
+                <select name="txtactividad" <%= (idActPre != null) ? "disabled" : "" %> required>
+                    <option value="">-- Seleccione una actividad --</option>
                     <% for (Actividad act : listaActividades) {
-                        boolean isSelected = (esEdicion && tareaEditar.getActividad_id() == act.getId()) ||
-                                           (!esEdicion && idActPre != null && idActPre.equals(act.getId()));
+                        boolean selected = (esEdicion && tareaEditar.getActividad_id() == act.getId()) ||
+                                           (idActPre != null && idActPre.equals(act.getId()));
                     %>
-                    <option value="<%= act.getId() %>" <%= isSelected ? "selected" : "" %>><%= act.getTitulo() %></option>
+                    <option value="<%= act.getId() %>" <%= selected ? "selected" : "" %>><%= act.getTitulo() %></option>
                     <% } %>
                 </select>
+                <% if(idActPre != null && !esEdicion) { %>
+                    <small style="color: #666;">Tarea vinculada automáticamente a la actividad seleccionada.</small>
+                <% } %>
             </div>
 
-            <%-- Categoría y Prioridad --%>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="grid-2">
                 <div class="form-group">
-                    <label><i class="fas fa-tags"></i> Categoría *</label>
+                    <label>Categoría *</label>
                     <select name="txtcategoria" required>
-                        <option value="">-- Categoría --</option>
+                        <option value="">-- Seleccionar --</option>
                         <% for (Categoria cat : listaCategorias) {
-                                boolean selected = esEdicion && tareaEditar.getCategoria_id() == cat.getId();
+                            boolean selected = esEdicion && tareaEditar.getCategoria_id() == cat.getId();
                         %>
                         <option value="<%= cat.getId() %>" <%= selected ? "selected" : "" %>><%= cat.getNombre() %></option>
                         <% } %>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-flag"></i> Prioridad *</label>
+                    <label>Prioridad *</label>
                     <select name="txtprioridad" required>
                         <option value="Baja" <%= esEdicion && "Baja".equals(tareaEditar.getPrioridad()) ? "selected":"" %>>Baja</option>
-                        <option value="Media" <%= (esEdicion && "Media".equals(tareaEditar.getPrioridad())) || !esEdicion ? "selected":"" %>>Media</option>
+                        <option value="Media" <%= (!esEdicion || (esEdicion && "Media".equals(tareaEditar.getPrioridad()))) ? "selected":"" %>>Media</option>
                         <option value="Alta" <%= esEdicion && "Alta".equals(tareaEditar.getPrioridad()) ? "selected":"" %>>Alta</option>
                     </select>
                 </div>
             </div>
 
-            <%-- Fechas --%>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
                     <label><i class="fas fa-calendar-plus"></i> Inicio *</label>
                     <input type="date" id="fecha_inicio" name="txtfecha_inicio"
-                           value="<%= esEdicion ? tareaEditar.getFecha_inicio() : new java.sql.Date(System.currentTimeMillis()) %>" required>
+                           value="<%= esEdicion ? tareaEditar.getFecha_inicio() : new java.sql.Date(System.currentTimeMillis()) %>"
+                           <% if (!esEdicion) { %>
+                           min="<%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()) %>"
+                           <% } %>
+                           required>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-calendar-check"></i> Vencimiento *</label>
@@ -151,58 +170,130 @@
                 </div>
             </div>
 
-            <%-- Asignación (Solo Admin) --%>
             <% if ("Administrador".equals(user.getRol())) { %>
             <div class="form-group">
-                <label><i class="fas fa-user-tag"></i> Asignar a Usuario *</label>
+                <label>Responsable de la Tarea *</label>
                 <select name="txtusuario" required>
-                    <% if (listaUsuarios != null) {
-                        for (Usuario u : listaUsuarios) {
-                            boolean selected = (esEdicion && tareaEditar.getUsuario_id() == u.getId()) || (!esEdicion && u.getId() == user.getId());
+                    <% for (Usuario u : listaUsuarios) {
+                        boolean selected = (esEdicion && tareaEditar.getUsuario_id() == u.getId()) || (!esEdicion && u.getId() == user.getId());
                     %>
                     <option value="<%= u.getId() %>" <%= selected ? "selected" : "" %>><%= u.getNombre() %></option>
-                    <% } } %>
+                    <% } %>
                 </select>
             </div>
             <% } else { %>
                 <input type="hidden" name="txtusuario" value="<%= user.getId() %>">
             <% } %>
 
-            <%-- Estado (Solo en edición) --%>
-            <% if (esEdicion) { %>
             <div class="form-group">
-                <label><i class="fas fa-spinner"></i> Estado</label>
-                <select name="txtestado">
-                    <option value="Pendiente" <%= "Pendiente".equals(tareaEditar.getEstado()) ? "selected":"" %>>Pendiente</option>
-                    <option value="En Proceso" <%= "En Proceso".equals(tareaEditar.getEstado()) ? "selected":"" %>>En Proceso</option>
-                    <option value="Completada" <%= "Completada".equals(tareaEditar.getEstado()) ? "selected":"" %>>Completada</option>
-                </select>
-            </div>
-            <% } %>
-
-            <div class="form-group">
-                <label><i class="fas fa-align-left"></i> Descripción</label>
-                <textarea id="descripcion" name="txtdescripcion" maxlength="250" rows="2"><%= esEdicion ? tareaEditar.getDescripcion() : "" %></textarea>
+                <label>Descripción</label>
+                <textarea name="txtdescripcion" rows="3" placeholder="Detalles adicionales..."><%= esEdicion ? tareaEditar.getDescripcion() : "" %></textarea>
             </div>
 
             <button type="submit" class="btn-submit">
-                <i class="fas fa-save"></i> <%= esEdicion ? "Guardar Cambios" : "Crear Tarea" %>
+                <i class="fas fa-save"></i> <%= esEdicion ? "Actualizar Tarea" : "Guardar Tarea" %>
             </button>
         </form>
     </div>
 
     <script>
-        // JS simplificado para contadores y validación de fechas
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.querySelector('form');
-            form.addEventListener('submit', (e) => {
-                const inicio = new Date(document.getElementById('fecha_inicio').value);
-                const fin = new Date(document.getElementById('fecha_vencimiento').value);
-                if (fin < inicio) {
-                    e.preventDefault();
-                    Swal.fire('Error', 'La fecha de vencimiento es menor a la de inicio', 'warning');
-                }
-            });
+        const fechaInicio = document.getElementById('fecha_inicio');
+        const fechaVencimiento = document.getElementById('fecha_vencimiento');
+
+        <% if (!esEdicion) { %>
+        const fechaHoy = new Date();
+        fechaHoy.setHours(0, 0, 0, 0);
+        const fechaHoyStr = fechaHoy.toISOString().split('T')[0];
+        fechaInicio.setAttribute('min', fechaHoyStr);
+        <% } %>
+
+        fechaInicio.addEventListener('change', function() {
+            const fechaInicioSeleccionada = new Date(this.value + 'T00:00:00');
+            const fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0);
+
+            <% if (!esEdicion) { %>
+            if (fechaInicioSeleccionada < fechaActual) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fecha inválida',
+                    text: 'La fecha de inicio no puede ser anterior al día actual'
+                });
+                this.value = '';
+                fechaVencimiento.removeAttribute('min');
+                return;
+            }
+            <% } %>
+
+            if (fechaVencimiento.value && fechaVencimiento.value <= this.value) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Fecha inválida',
+                    text: 'La fecha de vencimiento debe ser posterior a la fecha de inicio'
+                });
+                fechaVencimiento.value = '';
+            }
+
+            if (this.value) {
+                const fechaInicioObj = new Date(this.value + 'T00:00:00');
+                fechaInicioObj.setDate(fechaInicioObj.getDate() + 1);
+                const fechaMinimaVencimiento = fechaInicioObj.toISOString().split('T')[0];
+                fechaVencimiento.setAttribute('min', fechaMinimaVencimiento);
+            }
+        });
+
+        fechaVencimiento.addEventListener('change', function() {
+            if (fechaInicio.value && this.value <= fechaInicio.value) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fecha inválida',
+                    text: 'La fecha de vencimiento debe ser posterior a la fecha de inicio'
+                });
+                this.value = '';
+            }
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const inicio = document.getElementById('fecha_inicio').value;
+            const vencimiento = document.getElementById('fecha_vencimiento').value;
+
+            if (!inicio || !vencimiento) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Campos requeridos',
+                    text: 'Las fechas de inicio y vencimiento son obligatorias'
+                });
+                return false;
+            }
+
+            <% if (!esEdicion) { %>
+            const fechaInicioDate = new Date(inicio + 'T00:00:00');
+            const fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0);
+
+            if (fechaInicioDate < fechaActual) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fecha inválida',
+                    text: 'La fecha de inicio no puede ser anterior al día actual'
+                });
+                return false;
+            }
+            <% } %>
+
+            if (vencimiento <= inicio) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fechas inválidas',
+                    text: 'La fecha de vencimiento debe ser posterior a la fecha de inicio'
+                });
+                return false;
+            }
+
+            return true;
         });
     </script>
 </body>

@@ -25,44 +25,24 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f5f5f5; display: flex; }
 
-        /* Sidebar */
+        /* SIDEBAR */
         .sidebar {
-            width: 300px;
-            height: 100vh;
-            background: linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%);
-            color: white;
-            padding: 0;
-            position: fixed;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto;
+            width: 300px; background: linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%);
+            position: fixed; height: 100vh; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
         }
-        .sidebar h2 {
-            font-size: 1.3rem;
-            padding: 30px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin: 0;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+        .sidebar-header { padding: 30px 20px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h2 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; margin: 0; }
+        .user-profile { padding: 15px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); color: white; }
+        .nav-menu { padding: 20px 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 15px 25px;
+            color: rgba(255,255,255,0.9); text-decoration: none; transition: all 0.3s; font-size: 0.95rem;
         }
-        .sidebar nav { padding: 20px 0; }
-        .sidebar a {
-            color: rgba(255,255,255,0.9);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 15px 25px;
-            text-decoration: none;
-            transition: 0.3s;
-            font-size: 0.95rem;
-        }
-        .sidebar a i {
-            font-size: 1.1rem;
-            width: 25px;
-        }
-        .sidebar a:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background: rgba(255,255,255,0.15); color: white; border-left: 4px solid white; }
+        .nav-item i { font-size: 1.1rem; width: 25px; }
+        .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 20px; }
+        .logout-btn { background: rgba(239, 68, 68, 0.2) !important; color: white !important; margin: 10px 20px; border-radius: 8px; }
 
         .main-content { margin-left: 300px; padding: 0; width: calc(100% - 300px); background: #f5f5f5; }
 
@@ -174,14 +154,155 @@
             border-radius: 12px;
             padding: 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: visible;
         }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { background-color: #7c3aed; color: white; padding: 15px; text-align: left; white-space: nowrap; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
-        td { padding: 15px; border-bottom: 1px solid #f1f2f6; color: #444; background: white; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 1400px;
+        }
+        th {
+            background-color: #7c3aed;
+            color: white;
+            padding: 16px 12px;
+            text-align: left;
+            white-space: nowrap;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f1f2f6;
+            color: #444;
+            background: white;
+            vertical-align: middle;
+        }
         tr:hover td { background-color: #f9f9f9; }
 
-        .badge-cat { background: #f0fdf4; color: #166534; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; border: 1px solid #bbf7d0; font-weight: 500; }
+        /* Anchos específicos para cada columna */
+        th:nth-child(1), td:nth-child(1) { width: 180px; min-width: 180px; } /* Actividad */
+        th:nth-child(2), td:nth-child(2) { width: 200px; min-width: 200px; } /* Título */
+        th:nth-child(3), td:nth-child(3) { width: 280px; min-width: 280px; max-width: 280px; } /* Descripción */
+        th:nth-child(4), td:nth-child(4) { width: 110px; min-width: 110px; text-align: center; } /* F. Inicio */
+        th:nth-child(5), td:nth-child(5) { width: 110px; min-width: 110px; text-align: center; } /* F. Venc */
+        th:nth-child(6), td:nth-child(6) { width: 120px; min-width: 120px; text-align: center; } /* Categoría */
+        th:nth-child(7), td:nth-child(7) { width: 90px; min-width: 90px; text-align: center; } /* Prioridad */
+        th:nth-child(8), td:nth-child(8) { width: 140px; min-width: 140px; text-align: center; } /* Estado */
+        th:nth-child(9), td:nth-child(9) { width: 120px; min-width: 120px; } /* Asignado */
+        th:nth-child(10), td:nth-child(10) { width: 150px; min-width: 150px; } /* Acciones */
+
+        /* Mejorar descripción con ellipsis */
+        td:nth-child(3) {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+
+        .badge-cat {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            border: 1px solid #bbf7d0;
+            font-weight: 500;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        /* Badge de usuario asignado */
+        .badge-usuario {
+            background: #ede9fe;
+            color: #5b21b6;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            border: 1px solid #c4b5fd;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .badge-usuario i {
+            font-size: 14px;
+        }
+
+        /* Badges de prioridad */
+        .badge-prioridad {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .badge-alta { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-media { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-baja { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+
+        /* Badges de estado */
+        .badge-estado-pendiente,
+        .badge-estado-progreso,
+        .badge-estado-completada {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .badge-estado-pendiente { background: #fff9e6; color: #856404; border: 1px solid #ffeaa7; }
+        .badge-estado-progreso { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+        .badge-estado-completada { background: #e8f5e9; color: #2e7d32; border: 1px solid #81c784; }
+
+        /* Botones de acción */
+        .btn-edit, .btn-delete {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 2px solid;
+            text-decoration: none;
+        }
+        .btn-edit {
+            color: #007bff;
+            border-color: #007bff;
+            background: transparent;
+        }
+        .btn-edit:hover {
+            background: #007bff;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+        .btn-delete {
+            color: #dc3545;
+            border-color: #dc3545;
+            background: transparent;
+            margin-left: 6px;
+        }
+        .btn-delete:hover {
+            background: #dc3545;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
 
         /* Estilos para el selector de estado */
         select.estado-selector {
@@ -502,22 +623,7 @@
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>GESTIÓN DE TAREAS</h2>
-        <p style="font-size: 0.9rem; opacity: 0.7; padding: 15px 25px; margin: 0; border-bottom: 1px solid rgba(255,255,255,0.1);">Bienvenido, <strong><%= user.getUsername() %></strong></p>
-        <nav>
-            <a href="dashboard.jsp"><i class="fas fa-home"></i> Inicio</a>
-            <a href="Tareaservlet?accion=listar"><i class="fas fa-clipboard-list"></i> <%= "Administrador".equals(user.getRol()) ? "Tareas" : "Mis Tareas" %></a>
-            <a href="ActividadServlet?accion=listar"><i class="fas fa-folder"></i> <%= "Administrador".equals(user.getRol()) ? "Actividades" : "Mis Actividades" %></a>
-            <% if ("Administrador".equals(user.getRol())) { %>
-                <a href="Tareaservlet?accion=reportes"><i class="fas fa-chart-bar"></i> Reportes</a>
-                <a href="Categoriaservlet?accion=listar"><i class="fas fa-pencil"></i> Gestión de Categorías</a>
-                <a href="registro_usuario.jsp"><i class="fas fa-users"></i> Gestión de Usuarios</a>
-            <% } %>
-            <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0;"></div>
-            <a href="index.jsp" style="background: rgba(239, 68, 68, 0.2); border-radius: 8px; margin: 0 20px;"><i class="fas fa-door-open"></i> Cerrar Sesión</a>
-        </nav>
-    </div>
+    <jsp:include page="components/header.jsp" />
 
     <div class="main-content">
         <div class="page-header">
@@ -560,17 +666,17 @@
                 <table>
             <thead>
                 <tr>
-                    <th>Actividad</th>
-                    <th>Título</th>
-                    <th>Descripción</th>
-                    <th style="text-align: center;">F. Inicio</th>
-                    <th style="text-align: center;">F. Venc.</th>
-                    <th style="text-align: center;">Categoría</th>
-                    <th style="text-align: center;">Prior.</th>
-                    <th style="text-align: center;">Estado</th>
+                    <th>ACTIVIDAD</th>
+                    <th>TÍTULO</th>
+                    <th>DESCRIPCIÓN</th>
+                    <th>F. INICIO</th>
+                    <th>F. VENC.</th>
+                    <th>CATEGORÍA</th>
+                    <th>PRIOR.</th>
+                    <th>ESTADO</th>
                     <% if ("Administrador".equals(user.getRol())) { %>
-                        <th>Asignado a</th>
-                        <th>Acciones</th>
+                        <th>ASIGNADO A</th>
+                        <th>ACCIONES</th>
                     <% } %>
                 </tr>
             </thead>
@@ -601,16 +707,15 @@
                             <tr>
                                 <td>
                                     <strong style="color: #667eea;">
-                                        <i class="fas fa-folder"></i>
                                         ${tarea.nombreActividad != null && !tarea.nombreActividad.isEmpty() ? tarea.nombreActividad : '<i style="color: #999;">Sin actividad</i>'}
                                     </strong>
                                 </td>
-                                <td><strong>${tarea.titulo}</strong></td>
-                                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <td><strong style="color: #2c3e50;">${tarea.titulo}</strong></td>
+                                <td title="${tarea.descripcion}">
                                     ${tarea.descripcion != null && !tarea.descripcion.isEmpty() ? tarea.descripcion : '<i>Sin descripción</i>'}
                                 </td>
-                                <td style="text-align: center;">${tarea.fecha_inicio}</td>
-                                <td style="text-align: center;">
+                                <td>${tarea.fecha_inicio}</td>
+                                <td>
                                     <strong>
                                         <c:choose>
                                             <c:when test="${not empty tarea.fecha_vencimiento}">
@@ -622,34 +727,57 @@
                                         </c:choose>
                                     </strong>
                                 </td>
-                                <td style="text-align: center;">
+                                <td>
                                     <span class="badge-cat">${tarea.nombreCategoria != null ? tarea.nombreCategoria : 'General'}</span>
                                 </td>
-                                <td style="text-align: center;">${tarea.prioridad}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${tarea.prioridad == 'Alta'}">
+                                            <span class="badge-prioridad badge-alta">Alta</span>
+                                        </c:when>
+                                        <c:when test="${tarea.prioridad == 'Media'}">
+                                            <span class="badge-prioridad badge-media">Media</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge-prioridad badge-baja">Baja</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
 
                         <%-- SELECTOR DE ESTADO DESPLEGABLE --%>
-                        <td style="text-align: center;">
-                            <% if ("Usuario".equals(user.getRol())) { %>
-                                <select id="estado_${tarea.id}"
-                                        class="estado-selector"
-                                        onchange="cambiarEstado(${tarea.id}, this.value)">
-                                    <option value="Pendiente" <c:if test="${tarea.estado eq 'Pendiente'}">selected</c:if>>📋 Pendiente</option>
-                                    <option value="En Progreso" <c:if test="${tarea.estado eq 'En Progreso'}">selected</c:if>>⏳ En Progreso</option>
-                                    <option value="Completada" <c:if test="${tarea.estado eq 'Completada'}">selected</c:if>>✅ Completada</option>
-                                </select>
-                            <% } else { %>
-                                <select class="estado-selector"
-                                        disabled
-                                        title="Solo el usuario asignado puede modificar el estado">
-                                    <option value="Pendiente" <c:if test="${tarea.estado eq 'Pendiente'}">selected</c:if>>📋 Pendiente</option>
-                                    <option value="En Progreso" <c:if test="${tarea.estado eq 'En Progreso'}">selected</c:if>>⏳ En Progreso</option>
-                                    <option value="Completada" <c:if test="${tarea.estado eq 'Completada'}">selected</c:if>>✅ Completada</option>
-                                </select>
-                            <% } %>
+                        <td>
+                            <c:choose>
+                                <c:when test="${tarea.estado eq 'Pendiente'}">
+                                    <span class="badge-estado-pendiente">Pendiente</span>
+                                </c:when>
+                                <c:when test="${tarea.estado eq 'En Progreso'}">
+                                    <span class="badge-estado-progreso">En Progreso</span>
+                                </c:when>
+                                <c:when test="${tarea.estado eq 'Completada'}">
+                                    <span class="badge-estado-completada">Completada</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="badge-estado-pendiente">${tarea.estado}</span>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
 
                         <% if ("Administrador".equals(user.getRol())) { %>
-                            <td>${tarea.nombreUsuario}</td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${not empty tarea.nombreUsuario}">
+                                        <span class="badge-usuario">
+                                            <i class="fas fa-user-circle"></i>
+                                            ${tarea.nombreUsuario}
+                                        </span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span style="color: #999; font-style: italic; font-size: 0.85rem;">
+                                            <i class="fas fa-user-slash"></i> Sin asignar
+                                        </span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
                             <td style="white-space: nowrap;">
                                 <button class="btn-edit"
                                         data-id="${tarea.id}"
@@ -659,10 +787,12 @@
                                         data-estado="${tarea.estado}"
                                         data-categoria_id="${tarea.categoria_id}"
                                         data-fecha_vencimiento="${tarea.fecha_vencimiento}"
-                                        onclick="abrirEditarModalFromButton(this)"
-                                        style="background:#2196F3; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">✏️ Editar</button>
-                                <button onclick="confirmarEliminar(${tarea.id})"
-                                        style="background:#f44336; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">🗑️ Borrar</button>
+                                        onclick="abrirEditarModalFromButton(this)">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                                <button class="btn-delete" onclick="confirmarEliminar(${tarea.id})">
+                                    <i class="fas fa-trash"></i> Borrar
+                                </button>
                             </td>
                         <% } %>
                     </tr>

@@ -22,88 +22,213 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; min-height: 100vh; display: flex; }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 300px; background: linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%);
-            position: fixed; height: 100vh; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
         }
-        .sidebar-header { padding: 30px 20px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-header h2 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; }
-        .user-profile { padding: 15px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); color: white; }
-        .nav-menu { padding: 20px 0; }
-        .nav-item {
-            display: flex; align-items: center; gap: 12px; padding: 15px 25px;
-            color: rgba(255,255,255,0.9); text-decoration: none; transition: all 0.3s; font-size: 0.95rem;
-        }
-        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
-        .nav-item.active { background: rgba(255,255,255,0.15); color: white; border-left: 4px solid white; }
-        .nav-item i { font-size: 1.1rem; width: 25px; }
-        .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 20px; }
-        .logout-btn { background: rgba(239, 68, 68, 0.2) !important; color: white !important; margin: 10px 20px; border-radius: 8px; }
 
         /* MAIN CONTENT */
-        .main-content { margin-left: 300px; width: calc(100% - 300px); min-height: 100vh; }
-        .page-header { background: white; padding: 30px 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .page-header h1 { color: #7c3aed; font-size: 2rem; font-weight: 700; }
-        .content-area { padding: 40px; }
+        .main-content {
+            margin-left: 300px;
+            width: calc(100% - 300px);
+            min-height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-header {
+            background: white;
+            padding: 35px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 0;
+            border-bottom: 4px solid #7c3aed;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .content-area {
+            padding: 0 40px 40px 40px;
+        }
 
         /* CONCEPT CARDS */
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
-        .concept-card {
-            background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-left: 4px solid #7c3aed; text-decoration: none; transition: transform 0.2s;
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
         }
-        .concept-card:hover { transform: translateY(-5px); }
-        .concept-card h3 { color: #333; font-size: 1.2rem; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-        .concept-card p { color: #666; font-size: 0.95rem; line-height: 1.6; }
+
+        .concept-card {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-left: 6px solid #7c3aed;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: default;
+            min-height: 200px;
+            justify-content: center;
+        }
+
+        .concept-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .concept-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: rgba(124, 58, 237, 0.08);
+            border-radius: 0 12px 0 50px;
+            z-index: 0;
+        }
+
+        .concept-card h3 {
+            color: #2c3e50;
+            font-size: 1.35rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+        }
+
+        .concept-card p {
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Botones ocultos - Tarjetas solo informativas */
+        .card-buttons {
+            display: none;
+        }
+
+        /* COLORES POR TARJETA */
         .blue { border-left-color: #3b82f6; }
+        .blue::before { background: rgba(59, 130, 246, 0.08); }
+        .blue h3 i { color: #3b82f6; }
+
         .green { border-left-color: #10b981; }
+        .green::before { background: rgba(16, 185, 129, 0.08); }
+        .green h3 i { color: #10b981; }
+
+        .orange { border-left-color: #f59e0b; }
+        .orange::before { background: rgba(245, 158, 11, 0.08); }
+        .orange h3 i { color: #f59e0b; }
+
+        .pink { border-left-color: #ec4899; }
+        .pink::before { background: rgba(236, 72, 153, 0.08); }
+        .pink h3 i { color: #ec4899; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .cards-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .page-header {
+                padding: 25px 20px;
+            }
+
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .content-area {
+                padding: 0 20px 30px 20px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <div class="sidebar">
-        <div class="sidebar-header"><h2>GESTIÓN DE TAREAS</h2></div>
-        <div class="user-profile">
-            <div style="font-size: 0.9rem;">Bienvenido, <br><strong><%= user.getUsername() %></strong></div>
-            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.7);"><%= user.getRol() %></div>
-        </div>
-        <nav class="nav-menu">
-            <a href="dashboard.jsp" class="nav-item active"><i class="fas fa-home"></i><span>Inicio</span></a>
-            <a href="Tareaservlet?accion=listar" class="nav-item"><i class="fas fa-clipboard-list"></i><span>Tareas</span></a>
-            <a href="ActividadServlet?accion=listar" class="nav-item"><i class="fas fa-folder"></i><span>Actividades</span></a>
-            <% if (esAdmin) { %>
-                <a href="Reportesservlet" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
-                <a href="Categoriaservlet?accion=listar" class="nav-item"><i class="fas fa-tags"></i><span>Categorías</span></a>
-                <a href="registro_usuario.jsp" class="nav-item"><i class="fas fa-users"></i><span>Usuarios</span></a>
-            <% } %>
-            <div class="nav-divider"></div>
-            <a href="index.jsp" class="nav-item logout-btn"><i class="fas fa-power-off"></i><span>Cerrar Sesión</span></a>
-        </nav>
-    </div>
+    <jsp:include page="components/header.jsp" />
 
     <div class="main-content">
         <div class="page-header">
-            <h1>Hola, <%= user.getUsername() %> 👋</h1>
+            <h1>Panel de Control</h1>
+            <p>Gestiona tus tareas y actividades de manera eficiente</p>
         </div>
 
         <div class="content-area">
             <div class="cards-grid">
+                <!-- TAREAS -->
                 <div class="concept-card">
-                    <h3><i class="fas fa-check-circle" style="color: #7c3aed;"></i> Tareas</h3>
-                    <p>Gestiona tus pendientes y organiza tu día a día de manera eficiente.</p>
+                    <h3><i class="fas fa-check-circle"></i> Tareas</h3>
+                    <p>Gestiona tus pendientes y organiza tu día a día de manera eficiente. Crea nuevas tareas, asigna prioridades y realiza un seguimiento de tu progreso.</p>
                 </div>
+
+                <!-- ACTIVIDADES -->
                 <div class="concept-card blue">
-                    <h3><i class="fas fa-project-diagram" style="color: #3b82f6;"></i> Actividades</h3>
-                    <p>Agrupa tus tareas en proyectos para un seguimiento detallado de tus objetivos.</p>
+                    <h3><i class="fas fa-project-diagram">hhhh</i> Actividades</h3>
+                    <p>Agrupa tus tareas en proyectos para un seguimiento detallado de tus objetivos. Organiza mejor tu trabajo mediante actividades relacionadas.</p>
                 </div>
+
                 <% if (esAdmin) { %>
-                <div class="concept-card green">
-                    <h3><i class="fas fa-user-shield" style="color: #10b981;"></i> Administrador</h3>
-                    <p>Acceso total a la configuración del sistema, gestión de usuarios y métricas.</p>
-                </div>
+                    <!-- REPORTES (ADMIN) -->
+                    <div class="concept-card green">
+                        <h3><i class="fas fa-chart-bar"></i> Reportes</h3>
+                        <p>Visualiza estadísticas y métricas del sistema para una mejor toma de decisiones. Analiza el desempeño y productividad de tu equipo.</p>
+                    </div>
+
+                    <!-- CATEGORÍAS (ADMIN) -->
+                    <div class="concept-card orange">
+                        <h3><i class="fas fa-tags"></i> Categorías</h3>
+                        <p>Administra las categorías del sistema para una mejor organización. Define y personaliza las categorías según tus necesidades.</p>
+                    </div>
+
+                    <!-- USUARIOS (ADMIN) -->
+                    <div class="concept-card pink">
+                        <h3><i class="fas fa-users"></i> Usuarios</h3>
+                        <p>Administra los usuarios del sistema y sus permisos de acceso. Controla quién puede acceder a qué información.</p>
+                    </div>
                 <% } %>
             </div>
         </div>

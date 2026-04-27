@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Tomcat 9.0.115" type="TomcatLocal" factoryName="Tomcat Local">
+    <option name="SERVER_NAME" value="Tomcat 9.0.115 - Correcto" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="EXECUTABLE_PATH" value="$PROJECT_DIR$/apache-tomcat-9.0.115/bin/catalina.bat" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/apache-tomcat-9.0.115" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs>
+      <env name="CATALINA_HOME" value="$PROJECT_DIR$/apache-tomcat-9.0.115" />
+      <env name="CATALINA_BASE" value="$PROJECT_DIR$/apache-tomcat-9.0.115" />
+      <env name="JAVA_HOME" value="C:\Users\sofsh\.jdks\ms-17.0.18" />
+    </envs>
+    <method v="2">
+      <option name="MakeProject" enabled="true" />
+      <option name="RunConfigurationTask" enabled="true" runConfigName="Build Project" />
+    </method>
+  </configuration>
+</component>
+

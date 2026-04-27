@@ -92,7 +92,7 @@
         <hr>
         <p>
             <a href="ActividadServlet?accion=listar">← Volver a Mis Actividades</a> |
-            <a href="dashboard.jsp">🏠 Dashboard</a>
+            <a href="dashboard.jsp">🏠 Inicio</a>
         </p>
     </div>
 </body>

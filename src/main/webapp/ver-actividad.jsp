@@ -13,6 +13,9 @@
         return;
     }
 
+    // Solo el administrador puede editar y agregar tareas
+    boolean esAdministrador = "Administrador".equals(user.getRol());
+
     int totalTareas = listaTareas != null ? listaTareas.size() : 0;
     int tareasCompletadas = 0;
     if (listaTareas != null) {
@@ -35,11 +38,13 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            display: flex;
         }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            margin-left: 300px;
+            width: calc(100% - 300px);
+            max-width: 100%;
+            padding: 20px;
         }
         .actividad-header {
             background: white;
@@ -140,12 +145,13 @@
             color: white;
         }
         .btn-secondary {
-            background: #6c757d;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
         }
         .tareas-section {
             background: white;
@@ -243,13 +249,14 @@
     </script>
     <% } %>
 
+    <jsp:include page="components/header.jsp" />
+
     <div class="container">
         <!-- Cabecera de la Actividad -->
         <div class="actividad-header">
             <div class="header-top">
-                <div style="flex: 1;">
+                <div class="header-info">
                     <h1 class="titulo-principal">
-                        <i class="fas fa-folder-open"></i>
                         <%= actividad.getTitulo() %>
                     </h1>
 
@@ -271,9 +278,11 @@
                     <a href="ActividadServlet?accion=listar" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Volver
                     </a>
+                    <% if (esAdministrador) { %>
                     <a href="ActividadServlet?accion=editar&id=<%= actividad.getId() %>" class="btn btn-primary">
                         <i class="fas fa-edit"></i> Editar
                     </a>
+                    <% } %>
                 </div>
             </div>
 
@@ -323,9 +332,11 @@
                     <i class="fas fa-list-check"></i>
                     Tareas de esta Actividad
                 </h2>
+                <% if (esAdministrador) { %>
                 <a href="Tareaservlet?accion=nuevo&actividad_id=<%= actividad.getId() %>" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Agregar Tarea
                 </a>
+                <% } %>
             </div>
 
             <% if (listaTareas != null && !listaTareas.isEmpty()) { %>
@@ -339,6 +350,14 @@
                             <i class="fas fa-check-circle" style="color: #28a745;"></i>
                         <% } %>
                     </div>
+
+                    <% if (tarea.getDescripcion() != null && !tarea.getDescripcion().isEmpty()) { %>
+                    <div style="color: #555; font-size: 0.95rem; margin: 10px 0; line-height: 1.5; padding: 10px; background: white; border-radius: 6px;">
+                        <i class="fas fa-align-left" style="color: #667eea; margin-right: 8px;"></i>
+                        <%= tarea.getDescripcion() %>
+                    </div>
+                    <% } %>
+
                     <div class="tarea-info">
                         <span>
                             <i class="fas fa-tag"></i>
@@ -356,10 +375,12 @@
                             <i class="far fa-calendar"></i>
                             Vence: <%= tarea.getFecha_vencimiento() %>
                         </span>
+                        <% if (esAdministrador) { %>
                         <a href="Tareaservlet?accion=editar&id=<%= tarea.getId() %>"
                            style="color: #667eea; text-decoration: none; font-weight: bold;">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+                        <% } %>
                     </div>
                 </div>
                 <% } %>
@@ -367,12 +388,16 @@
                 <div class="empty-tareas">
                     <i class="fas fa-tasks"></i>
                     <h3>No hay tareas en esta actividad</h3>
-                    <p>Agrega la primera tarea para comenzar a organizar tu trabajo</p>
+                    <% if (esAdministrador) { %>
+                    <p>Agrega la primera tarea para comenzar a organizar el trabajo</p>
                     <a href="Tareaservlet?accion=nuevo&actividad_id=<%= actividad.getId() %>"
                        class="btn btn-primary"
                        style="margin-top: 20px;">
                         <i class="fas fa-plus"></i> Crear Primera Tarea
                     </a>
+                    <% } else { %>
+                    <p>Esta actividad aún no tiene tareas asignadas</p>
+                    <% } %>
                 </div>
             <% } %>
         </div>

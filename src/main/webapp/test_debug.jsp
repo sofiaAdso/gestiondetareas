@@ -113,7 +113,7 @@
 
     <hr>
     <p><a href="Tareaservlet?accion=listar">🔄 Recargar desde Servlet</a></p>
-    <p><a href="dashboard.jsp">📋 Ir a Dashboard (sin servlet)</a></p>
+    <p><a href="dashboard.jsp">📋 Ir a Inicio (sin servlet)</a></p>
     <p><a href="index.jsp">🏠 Volver al Login</a></p>
 </body>
 </html>

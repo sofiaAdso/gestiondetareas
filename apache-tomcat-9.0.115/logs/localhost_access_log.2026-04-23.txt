@@ -1,0 +1,12 @@
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:08:43:37 -0500] "GET /SistemaGestionTareas/ActividadServlet?accion=listar&msg=estado_actualizado HTTP/1.1" 404 729
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:00:13 -0500] "GET / HTTP/1.1" 200 11430
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET / HTTP/1.1" 200 11430
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET /tomcat.css HTTP/1.1" 200 5981
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET /tomcat.svg HTTP/1.1" 200 68761
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET /asf-logo-wide.svg HTTP/1.1" 200 7147
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET /bg-nav.png HTTP/1.1" 200 1401
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET /bg-upper.png HTTP/1.1" 200 3103
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET /bg-middle.png HTTP/1.1" 200 1918
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET /bg-button.png HTTP/1.1" 200 713
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:04:20 -0500] "GET /favicon.ico HTTP/1.1" 200 21630
+0:0:0:0:0:0:0:1 - - [23/Apr/2026:09:12:07 -0500] "GET /SistemaGestionTareas/ActividadServlet?accion=listar&msg=estado_actualizado HTTP/1.1" 404 729

@@ -7,11 +7,13 @@
     Usuario user = (Usuario) session.getAttribute("usuario");
     if (user == null) { response.sendRedirect("index.jsp"); return; }
 
+    // ✅ Bloquear acceso a usuarios que no sean Administrador
+    boolean isAdmin = "Administrador".equals(user.getRol());
+    if (!isAdmin) { response.sendRedirect("dashboard.jsp"); return; }
+
     // Lista de novedades cargadas por el servlet (NovedadServlet?accion=listar)
     List<Novedad> listaNovedades = (List<Novedad>) request.getAttribute("listaNovedades");
     if (listaNovedades == null) listaNovedades = new ArrayList<>();
-
-    boolean isAdmin = "Administrador".equals(user.getRol());
 
     // Mensaje de éxito o error tras guardar
     String msg   = request.getParameter("msg");
@@ -51,7 +53,6 @@
             min-height: 100vh;
         }
 
-        /* ── Layout principal ── */
         .main-content {
             margin-left: 300px;
             width: calc(100% - 300px);
@@ -59,7 +60,6 @@
             min-height: 100vh;
         }
 
-        /* ── Header ── */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -76,7 +76,6 @@
         }
         .page-title i { font-size: 1.6rem; }
 
-        /* ── Botón nueva novedad ── */
         .btn-nueva {
             display: inline-flex;
             align-items: center;
@@ -96,7 +95,6 @@
         }
         .btn-nueva:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,0.40); }
 
-        /* ── Stats cards ── */
         .stats-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -132,7 +130,6 @@
         .stat-value { font-size: 1.75rem; font-weight: 700; line-height: 1; }
         .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 
-        /* ── Tabla ── */
         .table-card {
             background: var(--card);
             border-radius: var(--radius);
@@ -188,7 +185,6 @@
         tbody tr { transition: background 0.15s; }
         tbody tr:hover { background: rgba(102,126,234,0.04); }
 
-        /* Badges */
         .badge {
             display: inline-flex; align-items: center; gap: 5px;
             padding: 4px 10px; border-radius: 20px;
@@ -201,7 +197,6 @@
         .badge-apto      { background: rgba(16,185,129,0.15);  color: #059669; }
         .badge-noapto    { background: rgba(239,68,68,0.12);   color: var(--danger); }
 
-        /* Acciones tabla */
         .table-actions { display: flex; gap: 6px; }
         .btn-icon {
             width: 32px; height: 32px;
@@ -214,16 +209,12 @@
         .btn-icon.print  { background: rgba(102,126,234,0.10); color: var(--primary); }
         .btn-icon:hover  { transform: scale(1.15); }
 
-        /* Empty state */
         .empty-state {
             text-align: center; padding: 80px 20px; color: var(--muted);
         }
         .empty-state i { font-size: 3.5rem; margin-bottom: 16px; opacity: 0.3; display: block; }
         .empty-state p { font-size: 1rem; }
 
-        /* ══════════════════════════════════
-           MODAL / FORMULARIO DE NOVEDAD
-        ══════════════════════════════════ */
         .modal-overlay {
             display: none;
             position: fixed; inset: 0; z-index: 1000;
@@ -271,7 +262,6 @@
 
         .modal-body { padding: 28px 32px; }
 
-        /* ── Secciones del formulario ── */
         .form-section {
             background: var(--bg);
             border-radius: 12px;
@@ -296,9 +286,7 @@
         .fila.col3 { grid-template-columns: 1fr 1fr 1fr; }
 
         .fgroup { display: flex; flex-direction: column; gap: 6px; }
-        .fgroup label {
-            font-size: 0.8rem; font-weight: 600; color: #444;
-        }
+        .fgroup label { font-size: 0.8rem; font-weight: 600; color: #444; }
         .fgroup input, .fgroup select, .fgroup textarea {
             padding: 10px 14px;
             border: 2px solid var(--border);
@@ -314,9 +302,18 @@
             border-color: var(--primary); outline: none;
             box-shadow: 0 0 0 3px rgba(102,126,234,0.10);
         }
+        .fgroup input:invalid:not(:placeholder-shown),
+        .fgroup select:invalid,
+        .fgroup textarea:invalid:not(:placeholder-shown) {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.10);
+        }
+        .fgroup input:valid:not(:placeholder-shown),
+        .fgroup textarea:valid:not(:placeholder-shown) {
+            border-color: var(--success);
+        }
         .fgroup textarea { resize: vertical; min-height: 70px; }
 
-        /* Toggle APTO / NO APTO */
         .viabilidad-toggle { display: flex; gap: 10px; }
         .viab-btn {
             flex: 1; padding: 12px; border-radius: 10px;
@@ -330,7 +327,6 @@
         .viab-btn.apto.active   { background: var(--success); color: white; border-color: var(--success); }
         .viab-btn.noapto.active { background: var(--danger);  color: white; border-color: var(--danger); }
 
-        /* Firmas */
         .firmas-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .firma-box {
             border: 2px dashed var(--border); border-radius: 12px;
@@ -344,7 +340,6 @@
         }
         .firma-box input:focus { border-bottom-color: var(--primary); }
 
-        /* Footer modal */
         .modal-footer {
             padding: 20px 32px 28px;
             display: flex; gap: 12px; justify-content: flex-end;
@@ -366,7 +361,6 @@
         }
         .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.45); }
 
-        /* Notificación flotante */
         .toast {
             position: fixed; bottom: 30px; right: 30px; z-index: 9999;
             background: white; border-radius: 14px; padding: 16px 22px;
@@ -379,7 +373,6 @@
         .toast.error { border-left-color: var(--danger); }
         @keyframes toastIn { from { transform: translateX(120px); opacity:0; } to { transform: translateX(0); opacity:1; } }
 
-        /* Responsive */
         @media (max-width: 900px) {
             .main-content { margin-left: 0; width: 100%; padding: 20px; }
             .stats-row { grid-template-columns: 1fr 1fr; }
@@ -392,7 +385,6 @@
 
     <div class="main-content">
 
-        <!-- Header -->
         <div class="page-header">
             <h1 class="page-title">
                 <i class="fas fa-clipboard-list"></i> Novedades
@@ -402,7 +394,6 @@
             </button>
         </div>
 
-        <!-- Stats -->
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
@@ -434,7 +425,6 @@
             </div>
         </div>
 
-        <!-- Tabla de novedades -->
         <div class="table-card">
             <div class="table-toolbar">
                 <h3><i class="fas fa-list" style="color:var(--primary);margin-right:8px;"></i>Registro de novedades</h3>
@@ -491,9 +481,7 @@
                             <div class="table-actions">
                                 <button class="btn-icon view" title="Ver detalle" onclick="verDetalle(<%= n.getId() %>)"><i class="fas fa-eye"></i></button>
                                 <button class="btn-icon print" title="Imprimir formato" onclick="imprimirFormato(<%= n.getId() %>)"><i class="fas fa-print"></i></button>
-                                <% if (isAdmin) { %>
                                 <button class="btn-icon del" title="Eliminar" onclick="confirmarEliminar(<%= n.getId() %>)"><i class="fas fa-trash"></i></button>
-                                <% } %>
                             </div>
                         </td>
                     </tr>
@@ -506,14 +494,10 @@
         </div>
     </div>
 
-    <!-- ══════════════════════════════════
-         MODAL: FORMULARIO DE NOVEDAD
-         GFPI-F-021
-    ══════════════════════════════════ -->
     <div class="modal-overlay" id="modalNovedad">
         <div class="modal-box">
             <div class="modal-header">
-                <h2><i class="fas fa-file-alt"></i> Reporte de Novedad — GFPI-F-021</h2>
+                <h2><i class="fas fa-file-alt"></i> Reporte de Novedad</h2>
                 <button class="modal-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
             </div>
 
@@ -522,52 +506,46 @@
 
                 <div class="modal-body">
 
-                    <!-- 1. INFORMACIÓN GENERAL -->
                     <div class="form-section">
                         <div class="form-section-title"><i class="fas fa-info-circle"></i> Información General</div>
-
                         <div class="fila col2">
                             <div class="fgroup">
                                 <label>Regional *</label>
-                                <input type="text" name="regional" placeholder="Ej: Antioquia" required>
+                                <input type="text" name="regional" placeholder="Ej: Antioquia" required minlength="2" maxlength="50" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-]*" title="Solo se permiten letras, espacios y guiones">
                             </div>
                             <div class="fgroup">
                                 <label>Centro de Formación *</label>
-                                <input type="text" name="centroFormacion" placeholder="Nombre del centro" required>
+                                <input type="text" name="centroFormacion" placeholder="Nombre del centro" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.]*" title="Solo se permiten letras, números, espacios, guiones y puntos">
                             </div>
                         </div>
-
                         <div class="fila col2">
                             <div class="fgroup">
                                 <label>Programa de Formación *</label>
-                                <input type="text" name="programaFormacion" placeholder="Nombre del programa" required>
+                                <input type="text" name="programaFormacion" placeholder="Nombre del programa" required minlength="3" maxlength="150" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.\y]*" title="Solo se permiten letras, números, espacios, guiones, puntos y 'y'">
                             </div>
                             <div class="fgroup">
                                 <label>Código del Programa</label>
-                                <input type="text" name="codigoPrograma" placeholder="Ej: 228110">
+                                <input type="text" name="codigoPrograma" placeholder="Ej: 228110" pattern="\d*" maxlength="20">
                             </div>
                         </div>
                     </div>
 
-                    <!-- 2. IDENTIFICACIÓN DEL AMBIENTE -->
                     <div class="form-section">
                         <div class="form-section-title"><i class="fas fa-door-open"></i> Identificación del Ambiente</div>
-
                         <div class="fila col3">
                             <div class="fgroup">
                                 <label>Identificación del Ambiente *</label>
-                                <input type="text" name="ambiente" placeholder="Ej: Aula 301" required>
+                                <input type="text" name="ambiente" placeholder="Ej: Aula 301" required minlength="2" maxlength="50" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.]*" title="Solo se permiten letras, números, espacios, guiones y puntos">
                             </div>
                             <div class="fgroup">
                                 <label>Localización</label>
-                                <input type="text" name="localizacion" placeholder="Bloque / Piso">
+                                <input type="text" name="localizacion" placeholder="Bloque / Piso" maxlength="50" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.,/]*" title="Solo se permiten letras, números, espacios y caracteres de ubicación">
                             </div>
                             <div class="fgroup">
                                 <label>Denominación</label>
-                                <input type="text" name="denominacion" placeholder="Ej: Laboratorio de Sistemas">
+                                <input type="text" name="denominacion" placeholder="Ej: Laboratorio de Sistemas" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.]*" title="Solo se permiten letras, números, espacios, guiones y puntos">
                             </div>
                         </div>
-
                         <div class="fila col2">
                             <div class="fgroup">
                                 <label>Tipo de Ambiente</label>
@@ -583,10 +561,8 @@
                         </div>
                     </div>
 
-                    <!-- 3. IDENTIFICACIÓN DE NOVEDADES -->
                     <div class="form-section">
                         <div class="form-section-title"><i class="fas fa-exclamation-triangle"></i> Identificación de Novedades</div>
-
                         <div class="fila col2">
                             <div class="fgroup">
                                 <label>Tipo de Novedad *</label>
@@ -600,12 +576,11 @@
                             </div>
                             <div class="fgroup">
                                 <label>Detalle de la Novedad *</label>
-                                <textarea name="detalleNovedad" id="txtDetalle" placeholder="Describe la novedad presentada..." required></textarea>
+                                <textarea name="detalleNovedad" id="txtDetalle" placeholder="Describe la novedad presentada..." required minlength="10" maxlength="1000"></textarea>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 4. DECISIÓN VIABILIDAD -->
                     <div class="form-section">
                         <div class="form-section-title"><i class="fas fa-gavel"></i> Decisión sobre la Viabilidad de Uso</div>
                         <input type="hidden" name="viabilidad" id="inputViabilidad" value="Apto">
@@ -619,27 +594,25 @@
                         </div>
                     </div>
 
-                    <!-- 5. FIRMAS -->
                     <div class="form-section">
                         <div class="form-section-title"><i class="fas fa-signature"></i> Firmas</div>
                         <div class="firmas-row">
                             <div class="firma-box">
                                 <label>Instructor que realiza el reporte</label>
                                 <input type="text" name="nombreInstructor"
-                                       value="<%= user.getNombre() %>" required>
+                                       value="<%= user.getNombre() %>" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*" title="Solo se permiten letras, espacios y acentos">
                                 <small style="color:var(--muted);font-size:0.75rem;margin-top:6px;display:block;">Ciudad y fecha se toman del sistema</small>
                             </div>
                             <div class="firma-box">
                                 <label>Coordinador que recibe el reporte</label>
-                                <input type="text" name="nombreCoordinador" placeholder="Nombre del coordinador" required>
+                                <input type="text" name="nombreCoordinador" placeholder="Nombre del coordinador" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*" title="Solo se permiten letras, espacios y acentos">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Campo oculto usuario -->
                     <input type="hidden" name="usuarioId" value="<%= user.getId() %>">
 
-                </div><!-- /modal-body -->
+                </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" onclick="cerrarModal()">
@@ -654,10 +627,12 @@
     </div>
 
     <script>
-        // ── Fecha de hoy por defecto ──
-        document.getElementById('inputFecha').value = new Date().toISOString().split('T')[0];
+        const hoyISO = new Date().toISOString().split('T')[0];
+        const inputFecha = document.getElementById('inputFecha');
+        inputFecha.value = hoyISO;
+        inputFecha.min = hoyISO;
+        inputFecha.max = '2099-12-31';
 
-        // ── Abrir / cerrar modal ──
         function abrirModal() {
             document.getElementById('modalNovedad').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -666,19 +641,16 @@
             document.getElementById('modalNovedad').classList.remove('active');
             document.body.style.overflow = '';
         }
-        // Cerrar al hacer clic fuera
         document.getElementById('modalNovedad').addEventListener('click', function(e) {
             if (e.target === this) cerrarModal();
         });
 
-        // ── Viabilidad toggle ──
         function setViabilidad(valor) {
             document.getElementById('inputViabilidad').value = valor;
             document.getElementById('btnApto').classList.toggle('active', valor === 'Apto');
             document.getElementById('btnNoApto').classList.toggle('active', valor === 'No Apto');
         }
 
-        // ── Placeholder dinámico según tipo de novedad ──
         const placeholders = {
             'Ambiente':    'Describe el estado del ambiente, aula o laboratorio...',
             'Equipos':     'Describe el problema con equipos, máquinas o mobiliario...',
@@ -690,7 +662,6 @@
             txt.placeholder = placeholders[sel.value] || 'Describe la novedad presentada...';
         }
 
-        // ── Búsqueda en tabla ──
         function filtrarTabla() {
             const q = document.getElementById('buscar').value.toLowerCase();
             document.querySelectorAll('#tbodyNovedades tr').forEach(tr => {
@@ -698,7 +669,6 @@
             });
         }
 
-        // ── Confirmar eliminar ──
         function confirmarEliminar(id) {
             Swal.fire({
                 title: '¿Eliminar novedad?',
@@ -715,17 +685,14 @@
             });
         }
 
-        // ── Ver detalle ──
         function verDetalle(id) {
             window.location.href = 'NovedadServlet?accion=ver&id=' + id;
         }
 
-        // ── Imprimir formato ──
         function imprimirFormato(id) {
             window.open('NovedadServlet?accion=imprimir&id=' + id, '_blank');
         }
 
-        // ── Calcular stats desde la tabla ──
         function calcularStats() {
             let equipos = 0, aptos = 0, noAptos = 0;
             document.querySelectorAll('#tbodyNovedades tr').forEach(tr => {
@@ -742,7 +709,6 @@
         }
         calcularStats();
 
-        // ── Toast de mensajes del servidor ──
         <% if ("ok".equals(msg)) { %>
         mostrarToast('✅ Novedad registrada correctamente', false);
         <% } else if (error != null) { %>
@@ -757,21 +723,64 @@
             setTimeout(() => t.remove(), 4000);
         }
 
-        // ── Validación formulario ──
-        document.getElementById('formNovedad').addEventListener('submit', function(e) {
-            const tipo    = document.querySelector('[name="tipoNovedad"]').value;
-            const detalle = document.querySelector('[name="detalleNovedad"]').value.trim();
+        function esNombreValido(valor) {
+            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/.test(valor);
+        }
+        function esTextoValido(valor) {
+            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.]*$/.test(valor);
+        }
+        function esUbicacionValida(valor) {
+            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.,/]*$/.test(valor);
+        }
 
-            if (!tipo) {
-                e.preventDefault();
-                Swal.fire({ icon:'error', title:'Campo requerido', text:'Selecciona el tipo de novedad.' });
-                return false;
-            }
-            if (!detalle) {
-                e.preventDefault();
-                Swal.fire({ icon:'error', title:'Campo requerido', text:'Escribe el detalle de la novedad.' });
-                return false;
-            }
+        document.getElementById('formNovedad').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const regional = document.querySelector('[name="regional"]').value.trim();
+            const centroFormacion = document.querySelector('[name="centroFormacion"]').value.trim();
+            const programaFormacion = document.querySelector('[name="programaFormacion"]').value.trim();
+            const ambiente = document.querySelector('[name="ambiente"]').value.trim();
+            const fechaReporte = document.querySelector('[name="fechaReporte"]').value.trim();
+            const tipoNovedad = document.querySelector('[name="tipoNovedad"]').value.trim();
+            const detalleNovedad = document.querySelector('[name="detalleNovedad"]').value.trim();
+            const nombreInstructor = document.querySelector('[name="nombreInstructor"]').value.trim();
+            const nombreCoordinador = document.querySelector('[name="nombreCoordinador"]').value.trim();
+
+            if (!regional) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Regional es obligatorio.' }); return false; }
+            if (!centroFormacion) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Centro de Formación es obligatorio.' }); return false; }
+            if (!programaFormacion) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Programa de Formación es obligatorio.' }); return false; }
+            if (!ambiente) { Swal.fire({ icon:'error', title:'Validación', text:'El campo Identificación del Ambiente es obligatorio.' }); return false; }
+            if (!fechaReporte) { Swal.fire({ icon:'error', title:'Validación', text:'La Fecha del Reporte es obligatoria.' }); return false; }
+            if (!tipoNovedad) { Swal.fire({ icon:'error', title:'Validación', text:'Debes seleccionar el Tipo de Novedad.' }); return false; }
+            if (!detalleNovedad) { Swal.fire({ icon:'error', title:'Validación', text:'El Detalle de la Novedad es obligatorio.' }); return false; }
+            if (!nombreInstructor) { Swal.fire({ icon:'error', title:'Validación', text:'El nombre del Instructor es obligatorio.' }); return false; }
+            if (!nombreCoordinador) { Swal.fire({ icon:'error', title:'Validación', text:'El nombre del Coordinador es obligatorio.' }); return false; }
+
+            if (regional.length < 2 || regional.length > 50) { Swal.fire({ icon:'error', title:'Validación', text:'Regional debe tener entre 2 y 50 caracteres.' }); return false; }
+            if (centroFormacion.length < 3 || centroFormacion.length > 100) { Swal.fire({ icon:'error', title:'Validación', text:'Centro de Formación debe tener entre 3 y 100 caracteres.' }); return false; }
+            if (programaFormacion.length < 3 || programaFormacion.length > 150) { Swal.fire({ icon:'error', title:'Validación', text:'Programa de Formación debe tener entre 3 y 150 caracteres.' }); return false; }
+            if (ambiente.length < 2 || ambiente.length > 50) { Swal.fire({ icon:'error', title:'Validación', text:'Identificación del Ambiente debe tener entre 2 y 50 caracteres.' }); return false; }
+            if (detalleNovedad.length < 10 || detalleNovedad.length > 1000) { Swal.fire({ icon:'error', title:'Validación', text:'Detalle de Novedad debe tener entre 10 y 1000 caracteres.' }); return false; }
+            if (nombreInstructor.length < 3 || nombreInstructor.length > 100) { Swal.fire({ icon:'error', title:'Validación', text:'Nombre del Instructor debe tener entre 3 y 100 caracteres.' }); return false; }
+            if (nombreCoordinador.length < 3 || nombreCoordinador.length > 100) { Swal.fire({ icon:'error', title:'Validación', text:'Nombre del Coordinador debe tener entre 3 y 100 caracteres.' }); return false; }
+
+            if (!esTextoValido(regional)) { Swal.fire({ icon:'error', title:'Validación', text:'Regional: Solo se permiten letras, espacios y guiones.' }); return false; }
+            if (!esTextoValido(centroFormacion)) { Swal.fire({ icon:'error', title:'Validación', text:'Centro de Formación: Solo se permiten letras, números, espacios, guiones y puntos.' }); return false; }
+            if (!esTextoValido(programaFormacion)) { Swal.fire({ icon:'error', title:'Validación', text:'Programa de Formación: Solo se permiten letras, números, espacios, guiones y puntos.' }); return false; }
+            if (!esTextoValido(ambiente)) { Swal.fire({ icon:'error', title:'Validación', text:'Identificación del Ambiente: Solo se permiten letras, números, espacios, guiones y puntos.' }); return false; }
+            if (!esNombreValido(nombreInstructor)) { Swal.fire({ icon:'error', title:'Validación', text:'Nombre del Instructor: Solo se permiten letras, espacios y acentos.' }); return false; }
+            if (!esNombreValido(nombreCoordinador)) { Swal.fire({ icon:'error', title:'Validación', text:'Nombre del Coordinador: Solo se permiten letras, espacios y acentos.' }); return false; }
+
+            const fechaSeleccionada = new Date(fechaReporte);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            fechaSeleccionada.setHours(0, 0, 0, 0);
+            if (fechaSeleccionada < hoy) { Swal.fire({ icon:'error', title:'Validación', text:'La fecha del reporte no puede ser en el pasado.' }); return false; }
+
+            const codigoPrograma = document.querySelector('[name="codigoPrograma"]').value.trim();
+            if (codigoPrograma && !/^\d+$/.test(codigoPrograma)) { Swal.fire({ icon:'error', title:'Validación', text:'El Código del Programa debe contener solo números.' }); return false; }
+
+            this.submit();
         });
     </script>
 </body>

@@ -6,194 +6,122 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Clase modelo para representar una Actividad del sistema
- * Una actividad puede contener múltiples tareas
+ * Modelo optimizado para Actividad.
+ * Compatible con JSP EL y persistencia JDBC.
  */
 public class Actividad {
+    // Atributos de Persistencia (Base de Datos)
     private int id;
-    private int usuario_id;
+    private int usuarioId; // Cambiado a camelCase para estándar Java
     private String titulo;
     private String descripcion;
-    private Date fecha_inicio;
-    private Date fecha_fin;
+    private Date fechaInicio;
+    private Date fechaFin;
     private String prioridad;
     private String estado;
     private String color;
-    private Timestamp fecha_creacion;
+    private Timestamp fechaCreacion;
 
-    // Campos calculados (no están en la BD)
+    // Atributos de UI / DTO (Campos calculados)
     private int totalTareas;
     private int tareasCompletadas;
     private double porcentajeCompletado;
     private String nombreUsuario;
     private List<Tarea> tareas = new ArrayList<>();
 
-    // Constructor vacío
-    public Actividad() {
-    }
+    public Actividad() {}
 
-    // Constructor completo
-    public Actividad(int id, int usuario_id, String titulo, String descripcion,
-                     Date fecha_inicio, Date fecha_fin, String prioridad,
-                     String estado, String color, Timestamp fecha_creacion) {
-        this.id = id;
-        this.usuario_id = usuario_id;
+    // Constructor para inserción (Sin ID ni timestamps de sistema)
+    public Actividad(int usuarioId, String titulo, String descripcion, Date fechaInicio, Date fechaFin, String prioridad, String estado) {
+        this.usuarioId = usuarioId;
         this.titulo = titulo;
         this.descripcion = descripcion;
-        this.fecha_inicio = fecha_inicio;
-        this.fecha_fin = fecha_fin;
+        this.fechaInicio = fechaInicio;
+        this.fechaFin = fechaFin;
         this.prioridad = prioridad;
         this.estado = estado;
-        this.color = color;
-        this.fecha_creacion = fecha_creacion;
     }
 
-    // Constructor sin ID (para crear nuevas actividades)
-    public Actividad(int usuario_id, String titulo, String descripcion,
-                     Date fecha_inicio, Date fecha_fin, String prioridad,
-                     String estado, String color) {
-        this.usuario_id = usuario_id;
-        this.titulo = titulo;
-        this.descripcion = descripcion;
-        this.fecha_inicio = fecha_inicio;
-        this.fecha_fin = fecha_fin;
-        this.prioridad = prioridad;
-        this.estado = estado;
-        this.color = color;
-    }
+    // --- Getters y Setters Estándar (Compatibles con JSP EL) ---
 
-    // Getters y Setters
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public int getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(int usuarioId) { this.usuarioId = usuarioId; }
 
-    public int getUsuario_id() {
-        return usuario_id;
-    }
+    // Alias para compatibilidad con código antiguo que use usuario_id
+    public int getUsuario_id() { return usuarioId; }
+    public void setUsuario_id(int usuario_id) { this.usuarioId = usuario_id; }
 
-    public void setUsuario_id(int usuario_id) {
-        this.usuario_id = usuario_id;
-    }
+    public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
 
-    public String getTitulo() {
-        return titulo;
-    }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
+    public Date getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(Date fechaInicio) { this.fechaInicio = fechaInicio; }
 
-    public String getDescripcion() {
-        return descripcion;
-    }
+    // Alias para compatibilidad JSP antiguo
+    public Date getFecha_inicio() { return fechaInicio; }
+    public void setFecha_inicio(Date f) { this.fechaInicio = f; }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
+    public Date getFechaFin() { return fechaFin; }
+    public void setFechaFin(Date fechaFin) { this.fechaFin = fechaFin; }
 
-    public Date getFecha_inicio() {
-        return fecha_inicio;
-    }
+    // Alias para compatibilidad JSP antiguo
+    public Date getFecha_fin() { return fechaFin; }
+    public void setFecha_fin(Date f) { this.fechaFin = f; }
 
-    public void setFecha_inicio(Date fecha_inicio) {
-        this.fecha_inicio = fecha_inicio;
-    }
+    public String getPrioridad() { return prioridad; }
+    public void setPrioridad(String prioridad) { this.prioridad = prioridad; }
 
-    public Date getFecha_fin() {
-        return fecha_fin;
-    }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 
-    public void setFecha_fin(Date fecha_fin) {
-        this.fecha_fin = fecha_fin;
-    }
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 
-    public String getPrioridad() {
-        return prioridad;
-    }
+    public Timestamp getFechaCreacion() { return fechaCreacion; }
+    public void setFechaCreacion(Timestamp fechaCreacion) { this.fechaCreacion = fechaCreacion; }
 
-    public void setPrioridad(String prioridad) {
-        this.prioridad = prioridad;
-    }
+    // --- Getters/Setters de lógica de negocio ---
 
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public Timestamp getFecha_creacion() {
-        return fecha_creacion;
-    }
-
-    public void setFecha_creacion(Timestamp fecha_creacion) {
-        this.fecha_creacion = fecha_creacion;
-    }
-
-    public int getTotalTareas() {
-        return totalTareas;
-    }
-
+    public int getTotalTareas() { return totalTareas; }
     public void setTotalTareas(int totalTareas) {
         this.totalTareas = totalTareas;
+        calcularProgreso();
     }
 
-    public int getTareasCompletadas() {
-        return tareasCompletadas;
-    }
-
+    public int getTareasCompletadas() { return tareasCompletadas; }
     public void setTareasCompletadas(int tareasCompletadas) {
         this.tareasCompletadas = tareasCompletadas;
+        calcularProgreso();
     }
 
-    public double getPorcentajeCompletado() {
-        return porcentajeCompletado;
+    public double getPorcentajeCompletado() { return porcentajeCompletado; }
+
+    private void calcularProgreso() {
+        if (this.totalTareas > 0) {
+            this.porcentajeCompletado = (double) this.tareasCompletadas * 100 / this.totalTareas;
+        } else {
+            this.porcentajeCompletado = 0;
+        }
+    }
+
+    public String getNombreUsuario() { return nombreUsuario; }
+    public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
+
+    public List<Tarea> getTareas() { return tareas; }
+    public void setTareas(List<Tarea> tareas) { this.tareas = tareas; }
+
+    @Override
+    public String toString() {
+        return "Actividad [id=" + id + ", titulo=" + titulo + ", progreso=" + porcentajeCompletado + "%]";
     }
 
     public void setPorcentajeCompletado(double porcentajeCompletado) {
         this.porcentajeCompletado = porcentajeCompletado;
     }
-
-    public String getNombreUsuario() {
-        return nombreUsuario;
-    }
-
-    public void setNombreUsuario(String nombreUsuario) {
-        this.nombreUsuario = nombreUsuario;
-    }
-
-    public List<Tarea> getTareas() {
-        return tareas;
-    }
-
-    public void setTareas(List<Tarea> tareas) {
-        this.tareas = tareas;
-    }
-
-    @Override
-    public String toString() {
-        return "Actividad{" +
-                "id=" + id +
-                ", titulo='" + titulo + '\'' +
-                ", prioridad='" + prioridad + '\'' +
-                ", estado='" + estado + '\'' +
-                ", totalTareas=" + totalTareas +
-                ", tareasCompletadas=" + tareasCompletadas +
-                ", porcentajeCompletado=" + porcentajeCompletado +
-                '}';
-    }
 }
-

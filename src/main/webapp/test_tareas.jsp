@@ -72,7 +72,7 @@
     <% } %>
 
     <br><br>
-    <a href="dashboard.jsp" style="color: #6a11cb; text-decoration: none;">← Volver al Dashboard</a>
+    <a href="dashboard.jsp" style="color: #6a11cb; text-decoration: none;">← Volver al Inicio</a>
 </body>
 </html>
 

@@ -4,40 +4,37 @@ import com.sena.gestion.model.Actividad;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ActividadDao {
 
-    // 1. LISTAR TODAS
-    public List<Actividad> listarTodas() {
-        List<Actividad> lista = new ArrayList<>();
-        String sql = "SELECT * FROM actividades ORDER BY titulo ASC";
-        try (Connection conn = Conexion.getConexion();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                lista.add(mapearActividad(rs));
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return lista;
-    }
+    private static final Logger LOGGER = Logger.getLogger(ActividadDao.class.getName());
 
-    // 2. LISTAR POR USUARIO
     public List<Actividad> listarPorUsuario(int usuarioId) {
         List<Actividad> lista = new ArrayList<>();
-        String sql = "SELECT * FROM actividades WHERE usuario_id = ? ORDER BY fecha_creacion DESC";
+        String sql = "SELECT * FROM actividades WHERE usuario_id = ? ORDER BY id DESC";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, usuarioId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    lista.add(mapearActividad(rs));
-                }
+                while (rs.next()) { lista.add(mapearActividad(rs)); }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error listarPorUsuario", e); }
         return lista;
     }
 
-    // 3. OBTENER POR ID
+    public List<Actividad> listarTodas() {
+        List<Actividad> lista = new ArrayList<>();
+        String sql = "SELECT * FROM actividades ORDER BY id DESC";
+        try (Connection conn = Conexion.getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) { lista.add(mapearActividad(rs)); }
+        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error listarTodas", e); }
+        return lista;
+    }
+
     public Actividad obtenerPorId(int id) {
         String sql = "SELECT * FROM actividades WHERE id = ?";
         try (Connection conn = Conexion.getConexion();
@@ -46,109 +43,90 @@ public class ActividadDao {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return mapearActividad(rs);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error obtenerPorId", e); }
         return null;
     }
 
-    // 4. ELIMINAR
+    // ── CREAR ──
+    public int crearYRetornarId(Actividad a) {
+        String sql = "INSERT INTO actividades (usuario_id, titulo, descripcion, fecha_inicio, fecha_fin, prioridad, estado, color) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+        try (Connection conn = Conexion.getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, a.getUsuario_id());
+            ps.setString(2, a.getTitulo());
+            ps.setString(3, a.getDescripcion());
+            ps.setDate(4, a.getFecha_inicio() != null ? new java.sql.Date(a.getFecha_inicio().getTime()) : null);
+            ps.setDate(5, a.getFecha_fin()    != null ? new java.sql.Date(a.getFecha_fin().getTime())    : null);
+            ps.setString(6, a.getPrioridad());
+            ps.setString(7, a.getEstado() != null ? a.getEstado() : "En Progreso");
+            ps.setString(8, a.getColor());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error crearYRetornarId", e); }
+        return -1;
+    }
+
+    // ── ACTUALIZAR ──
+    public boolean actualizar(Actividad a) {
+        String sql = "UPDATE actividades SET titulo=?, descripcion=?, fecha_inicio=?, fecha_fin=?, " +
+                "prioridad=?, estado=?, color=?, usuario_id=? WHERE id=?";
+        try (Connection conn = Conexion.getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, a.getTitulo());
+            ps.setString(2, a.getDescripcion());
+            ps.setDate(3, a.getFecha_inicio() != null ? new java.sql.Date(a.getFecha_inicio().getTime()) : null);
+            ps.setDate(4, a.getFecha_fin()    != null ? new java.sql.Date(a.getFecha_fin().getTime())    : null);
+            ps.setString(5, a.getPrioridad());
+            ps.setString(6, a.getEstado() != null ? a.getEstado() : "En Progreso");
+            ps.setString(7, a.getColor());
+            ps.setInt(8,    a.getUsuario_id());
+            ps.setInt(9,    a.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error actualizar", e); return false; }
+    }
+
+    // ── ACTUALIZAR SOLO ESTADO ──
+    public boolean actualizarEstado(int id, String estado) {
+        String sql = "UPDATE actividades SET estado = ? WHERE id = ?";
+        try (Connection conn = Conexion.getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, estado);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error actualizarEstado", e); return false; }
+    }
+
+    // ── ELIMINAR ──
     public boolean eliminar(int id) {
         String sql = "DELETE FROM actividades WHERE id = ?";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error eliminar", e); return false; }
     }
 
-    // 5. ACTUALIZAR
-    public boolean actualizar(Actividad a) {
-        String sql = "UPDATE actividades SET titulo=?, descripcion=?, fecha_inicio=?, fecha_fin=?, prioridad=?, estado=?, color=? WHERE id=?";
-        try (Connection conn = Conexion.getConexion();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, a.getTitulo());
-            ps.setString(2, a.getDescripcion());
-            ps.setDate(3, a.getFecha_inicio());
-            ps.setDate(4, a.getFecha_fin());
-            ps.setString(5, a.getPrioridad());
-            ps.setString(6, a.getEstado());
-            ps.setString(7, a.getColor());
-            ps.setInt(8, a.getId());
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) { return false; }
-    }
-
-    // 6. CREAR Y RETORNAR ID
-    public int crearYRetornarId(Actividad a) {
-        String sql = "INSERT INTO actividades (usuario_id, titulo, descripcion, fecha_inicio, fecha_fin, prioridad, estado, color) VALUES (?,?,?,?,?,?,?,?)";
-        try (Connection conn = Conexion.getConexion();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, a.getUsuario_id());
-            ps.setString(2, a.getTitulo());
-            ps.setString(3, a.getDescripcion());
-            ps.setDate(4, a.getFecha_inicio());
-            ps.setDate(5, a.getFecha_fin());
-            ps.setString(6, a.getPrioridad());
-            ps.setString(7, a.getEstado());
-            ps.setString(8, a.getColor());
-
-            if (ps.executeUpdate() > 0) {
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) return rs.getInt(1);
-                }
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return 0;
-    }
-
-    // --- NUEVOS MÉTODOS PARA DASHBOARD Y REPORTES ---
-
-    /**
-     * Cuenta el total de actividades registradas.
-     */
-    public int contarTodas() {
-        String sql = "SELECT COUNT(*) FROM actividades";
+    // ── REPORTE ──
+    public List<String[]> obtenerReporteActividadesConTareas() {
+        List<String[]> reporte = new ArrayList<>();
+        String sql = "SELECT a.titulo, t.titulo, t.estado FROM actividades a LEFT JOIN tareas t ON a.id = t.actividad_id";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) return rs.getInt(1);
-        } catch (SQLException e) { e.printStackTrace(); }
-        return 0;
-    }
-
-    /**
-     * Cuenta actividades por un estado específico (ej: 'Completada', 'En Proceso').
-     */
-    public int contarPorEstado(String estado) {
-        String sql = "SELECT COUNT(*) FROM actividades WHERE estado = ?";
-        try (Connection conn = Conexion.getConexion();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, estado);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+            while (rs.next()) {
+                reporte.add(new String[]{
+                        rs.getString(1),
+                        rs.getString(2) != null ? rs.getString(2) : "Sin tareas",
+                        rs.getString(3) != null ? rs.getString(3) : "N/A"
+                });
             }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return 0;
+        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error reporte", e); }
+        return reporte;
     }
 
-    /**
-     * Cuenta actividades por prioridad (ej: 'Alta', 'Media', 'Baja').
-     */
-    public int contarPorPrioridad(String prioridad) {
-        String sql = "SELECT COUNT(*) FROM actividades WHERE prioridad = ?";
-        try (Connection conn = Conexion.getConexion();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, prioridad);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return 0;
-    }
-
-    // Mapeo interno
+    // ── MAPPER ──
     private Actividad mapearActividad(ResultSet rs) throws SQLException {
         Actividad a = new Actividad();
         a.setId(rs.getInt("id"));
@@ -159,8 +137,7 @@ public class ActividadDao {
         a.setFecha_fin(rs.getDate("fecha_fin"));
         a.setPrioridad(rs.getString("prioridad"));
         a.setEstado(rs.getString("estado"));
-        a.setColor(rs.getString("color"));
+        try { a.setColor(rs.getString("color")); } catch (SQLException ignored) {}
         return a;
     }
 }
-
