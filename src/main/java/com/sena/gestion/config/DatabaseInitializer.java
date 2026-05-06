@@ -42,9 +42,9 @@ public class DatabaseInitializer implements ServletContextListener {
             if (databaseUrl != null && !databaseUrl.isEmpty()) {
                 log.info("🌍 Detectado entorno Railway");
 
-                // ✅ FORZAR FORMATO JDBC CORRECTO
-                if (databaseUrl.startsWith("postgres://")) {
-                    databaseUrl = "jdbc:postgresql://" + databaseUrl.substring("postgres://".length());
+                // 🔥 SOLUCIÓN DEFINITIVA (sirve para postgres:// y postgresql://)
+                if (!databaseUrl.startsWith("jdbc:")) {
+                    databaseUrl = "jdbc:" + databaseUrl;
                 }
 
                 url = databaseUrl;
