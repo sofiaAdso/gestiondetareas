@@ -162,8 +162,10 @@ CREATE INDEX IF NOT EXISTS idx_novedades_viabilidad    ON novedades(viabilidad);
 
 -- Usuario administrador
 INSERT INTO usuarios (username, email, password, rol)
-VALUES ('admin', 'admin@sena.edu.co', 'admin123', 'Administrador')
-    ON CONFLICT (username) DO NOTHING;
+SELECT 'admin', 'admin@sena.edu.co', 'admin123', 'Administrador'
+    WHERE NOT EXISTS (
+    SELECT 1 FROM usuarios WHERE username = 'admin'
+);
 
 -- Categorías base
 -- ✅ CORREGIDO: ON CONFLICT ahora especifica la columna 'nombre'
