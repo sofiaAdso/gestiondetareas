@@ -1,5 +1,4 @@
 package com.sena.gestion.config;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -42,14 +41,20 @@ public class DatabaseInitializer implements ServletContextListener {
             if (databaseUrl != null && !databaseUrl.isEmpty()) {
                 log.info("🌍 Detectado entorno Railway");
 
-                // 🔥 SOLUCIÓN DEFINITIVA (sirve para postgres:// y postgresql://)
-                if (!databaseUrl.startsWith("jdbc:")) {
-                    databaseUrl = "jdbc:" + databaseUrl;
-                }
+                // 🔥 PARSEAR URL CORRECTAMENTE
+                // formato: postgres://user:pass@host:port/db
+                java.net.URI dbUri = new java.net.URI(databaseUrl);
 
-                url = databaseUrl;
-                user = null;
-                pass = null;
+                String host = dbUri.getHost();
+                int port = dbUri.getPort();
+                String database = dbUri.getPath(); // /railway
+
+                String[] userInfo = dbUri.getUserInfo().split(":");
+                user = userInfo[0];
+                pass = userInfo[1];
+
+                url = "jdbc:postgresql://" + host + ":" + port + database;
+
                 driver = "org.postgresql.Driver";
 
             } else {
@@ -61,18 +66,14 @@ public class DatabaseInitializer implements ServletContextListener {
                 driver = props.getProperty("db.driver");
             }
 
-            log.info("📡 Conectando a: " + url);
+            log.info("📡 URL final: " + url);
+            log.info("👤 Usuario: " + user);
 
-            // 🔥 MUY IMPORTANTE: cargar driver
+            // 🔥 Cargar driver
             Class.forName(driver);
 
-            // 🔥 PROBAR CONEXIÓN ANTES DE TODO
-            Connection conn;
-            if (user == null) {
-                conn = DriverManager.getConnection(url);
-            } else {
-                conn = DriverManager.getConnection(url, user, pass);
-            }
+            // 🔥 Conectar BIEN (ahora sí correcto)
+            Connection conn = DriverManager.getConnection(url, user, pass);
 
             log.info("✅ Conexión exitosa a la BD");
 
