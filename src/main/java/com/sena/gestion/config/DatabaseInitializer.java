@@ -23,14 +23,11 @@ public class DatabaseInitializer implements ServletContextListener {
         log.info("🚀 Iniciando creación automática de tablas...");
 
         try {
-            // 1. Leer application.properties (para LOCAL)
             Properties props = new Properties();
             InputStream propsStream = getClass().getClassLoader()
                     .getResourceAsStream("application.properties");
 
-            if (propsStream == null) {
-                log.warning("⚠️ No se encontró application.properties (puede ser Railway)");
-            } else {
+            if (propsStream != null) {
                 props.load(propsStream);
             }
 
@@ -39,14 +36,15 @@ public class DatabaseInitializer implements ServletContextListener {
             String pass;
             String driver;
 
-            // 🔥 Detectar entorno Railway
+            // 🔥 DETECTAR RAILWAY
             String databaseUrl = System.getenv("DATABASE_URL");
 
-            if (databaseUrl != null) {
+            if (databaseUrl != null && !databaseUrl.isEmpty()) {
                 log.info("🌍 Detectado entorno Railway");
 
+                // ✅ FORZAR FORMATO JDBC CORRECTO
                 if (databaseUrl.startsWith("postgres://")) {
-                    databaseUrl = databaseUrl.replace("postgres://", "jdbc:postgresql://");
+                    databaseUrl = "jdbc:postgresql://" + databaseUrl.substring("postgres://".length());
                 }
 
                 url = databaseUrl;
@@ -64,7 +62,19 @@ public class DatabaseInitializer implements ServletContextListener {
             }
 
             log.info("📡 Conectando a: " + url);
+
+            // 🔥 MUY IMPORTANTE: cargar driver
             Class.forName(driver);
+
+            // 🔥 PROBAR CONEXIÓN ANTES DE TODO
+            Connection conn;
+            if (user == null) {
+                conn = DriverManager.getConnection(url);
+            } else {
+                conn = DriverManager.getConnection(url, user, pass);
+            }
+
+            log.info("✅ Conexión exitosa a la BD");
 
             // 2. Leer schema.sql
             InputStream sqlStream = getClass().getClassLoader()
@@ -77,21 +87,12 @@ public class DatabaseInitializer implements ServletContextListener {
 
             String sqlCompleto = new String(sqlStream.readAllBytes(), StandardCharsets.UTF_8);
 
-            // 3. Parsear sentencias
             List<String> sentencias = parsearSQL(sqlCompleto);
-
-            // 4. Conexión dinámica
-            Connection conn;
-
-            if (user == null) {
-                conn = DriverManager.getConnection(url);
-            } else {
-                conn = DriverManager.getConnection(url, user, pass);
-            }
 
             try (conn; Statement stmt = conn.createStatement()) {
 
                 int ejecutadas = 0;
+
                 for (String sentencia : sentencias) {
                     try {
                         stmt.execute(sentencia);
@@ -101,7 +102,7 @@ public class DatabaseInitializer implements ServletContextListener {
                     }
                 }
 
-                log.info("✅ Tablas creadas/verificadas. Sentencias ejecutadas: " + ejecutadas);
+                log.info("✅ Tablas creadas/verificadas. Total: " + ejecutadas);
             }
 
         } catch (Exception e) {
@@ -115,12 +116,11 @@ public class DatabaseInitializer implements ServletContextListener {
         StringBuilder actual = new StringBuilder();
 
         String[] lineas = sql.split("\n");
+
         for (String linea : lineas) {
             String lineaTrim = linea.trim();
 
-            if (lineaTrim.isEmpty() || lineaTrim.startsWith("--")) {
-                continue;
-            }
+            if (lineaTrim.isEmpty() || lineaTrim.startsWith("--")) continue;
 
             int comentario = lineaTrim.indexOf("--");
             if (comentario > 0) {
@@ -132,9 +132,11 @@ public class DatabaseInitializer implements ServletContextListener {
             if (lineaTrim.endsWith(";")) {
                 String sentencia = actual.toString().trim();
                 sentencia = sentencia.substring(0, sentencia.length() - 1).trim();
+
                 if (!sentencia.isEmpty()) {
                     resultado.add(sentencia);
                 }
+
                 actual = new StringBuilder();
             }
         }
