@@ -1,1 +1,10 @@
-
+services:
+  app:
+    build: .
+    container_name: gestiontareas_app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: "jdbc:postgresql://host.docker.internal:5432/Gestiondetareas"
+      DB_USER: postgres
+      DB_PASSWORD: "Mia1924."

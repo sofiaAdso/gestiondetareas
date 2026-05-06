@@ -163,7 +163,7 @@ public class CategoriaDao {
     }
 
     public List<Categoria> listarTodas() {
-        return List.of();
+        return listar();
     }
 }
 

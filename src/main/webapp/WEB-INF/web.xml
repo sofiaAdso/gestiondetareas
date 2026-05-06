@@ -7,17 +7,19 @@
 
     <display-name>Sistema de Gestión de Tareas</display-name>
 
-    <!-- Configuración de la página de bienvenida -->
+    <!-- Inicialización automática de la base de datos -->
+    <listener>
+        <listener-class>com.sena.gestion.config.DatabaseInitializer</listener-class>
+    </listener>
+
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
-    <!-- Configuración de sesión -->
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
 
-    <!-- Configuración de encoding UTF-8 -->
     <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>org.apache.catalina.filters.SetCharacterEncodingFilter</filter-class>
@@ -35,4 +37,5 @@
         <filter-name>encodingFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+
 </web-app>
