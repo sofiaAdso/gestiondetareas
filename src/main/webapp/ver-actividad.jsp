@@ -333,7 +333,7 @@
                     Tareas de esta Actividad
                 </h2>
                 <% if (esAdministrador) { %>
-                <a href="Tareaservlet?accion=nuevo&actividad_id=<%= actividad.getId() %>" class="btn btn-primary">
+                <a href="Tareaservlet?accion=nuevo&idActividad=<%= actividad.getId() %>" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Agregar Tarea
                 </a>
                 <% } %>

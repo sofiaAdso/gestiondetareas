@@ -161,6 +161,11 @@ public class CategoriaDao {
             System.err.println("Error al cerrar recursos: " + e.getMessage());
         }
     }
+
+    public List<Categoria> listarTodas() {
+        return List.of();
+    }
 }
+
 
 

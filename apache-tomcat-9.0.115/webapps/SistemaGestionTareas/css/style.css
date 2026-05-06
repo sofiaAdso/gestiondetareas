@@ -1,0 +1,124 @@
+/* --- COMPLEMENTOS DE INTERFAZ Y RESPONSIVIDAD --- */
+
+/* 1. Iconos y Navegación Lateral */
+.sidebar nav a i {
+    margin-right: 15px;
+    font-size: 1.1rem;
+    width: 25px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.sidebar nav a:hover i {
+    transform: scale(1.2); /* Pequeño salto del icono al pasar el mouse */
+}
+
+/* 2. Feedback Visual en Tablas */
+tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: #fcfaff; /* Tono morado muy sutil */
+    cursor: pointer;
+}
+
+/* 3. Estilos de Botones de Acción (Editar/Eliminar) */
+.actions-cell {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-delete {
+    color: #ff7675;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.btn-delete:hover {
+    background: #fff5f5;
+    border-color: #ff7675;
+    transform: scale(1.05);
+}
+
+/* 4. DISEÑO RESPONSIVO (Adaptación a Tablets y Celulares) */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 80px;
+        padding: 30px 10px;
+    }
+
+    /* Ocultamos los textos para que la barra sea minimalista con puros iconos */
+    .sidebar h2,
+    .sidebar nav a span,
+    .sidebar .user-info p {
+        display: none;
+    }
+
+    .container {
+        margin-left: 100px;
+        width: calc(100% - 120px);
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin-left: 0;
+        width: 100%;
+        padding: 15px;
+    }
+
+    .form-row {
+        flex-direction: column; /* Campos uno debajo del otro */
+        gap: 0;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    /* Scroll horizontal para que la tabla no rompa el diseño en celulares */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: 20px;
+    }
+}
+
+/* 5. Animación de Entrada (Modales y Cards) */
+@keyframes modalSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-content, .actividad-card {
+    animation: modalSlideDown 0.4s ease-out;
+}
+
+/* 6. Textos de Ayuda y Pie de Formulario */
+.form-help {
+    font-size: 0.75rem;
+    color: #b2bec3;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    display: block;
+    font-style: italic;
+}

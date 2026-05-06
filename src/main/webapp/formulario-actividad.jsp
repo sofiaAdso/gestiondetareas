@@ -156,10 +156,15 @@
                             <div class="fgroup">
                                 <label>Asignar a Instructor/Usuario *</label>
                                 <select name="usuario_id" required>
-                                    <% for (Usuario u : listaUsuarios) { %>
+                                    <option value="">-- Selecciona un usuario --</option>
+                                    <% if (listaUsuarios != null && listaUsuarios.size() > 0) {
+                                        for (Usuario u : listaUsuarios) { %>
                                     <option value="<%= u.getId() %>" <%= (esEdicion && u.getId() == actividadEditar.getUsuario_id()) ? "selected" : "" %>>
                                         <%= u.getNombre() != null ? u.getNombre() : u.getUsername() %>
                                     </option>
+                                    <% }
+                                    } else { %>
+                                    <option value="">No hay usuarios disponibles</option>
                                     <% } %>
                                 </select>
                             </div>

@@ -31,7 +31,10 @@ public class ActividadDao {
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) { lista.add(mapearActividad(rs)); }
-        } catch (SQLException e) { LOGGER.log(Level.SEVERE, "Error listarTodas", e); }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error listarTodas - Posible causa: tabla no existe", e);
+            System.err.println("⚠️ ERROR: Tabla 'actividades' no encontrada. Ejecuta: CREATE TABLE actividades...");
+        }
         return lista;
     }
 

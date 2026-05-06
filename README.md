@@ -1,6 +1,6 @@
 # Sistema de Gestión de Tareas
 
-Sistema web para la gestión integral de tareas y actividades, desarrollado con Java, JSP y MySQL.
+Sistema web para la gestión integral de tareas y actividades, desarrollado con Java, JSP y PostgreSQL.
 
 ## 📋 Descripción
 
@@ -23,16 +23,16 @@ Sistema de gestión de tareas empresarial que permite a los usuarios crear, orga
 
 - **Backend**: Java (Servlets, JSP)
 - **Frontend**: HTML5, CSS3, JavaScript
-- **Base de Datos**: MySQL
-- **Servidor**: Apache Tomcat
-- **Build Tool**: Maven
+- **Base de Datos**: PostgreSQL 12+
+- **Servidor**: Apache Tomcat 9.x
+- **Build Tool**: Maven 3.6+
 - **IDE**: IntelliJ IDEA / Eclipse
 
 ## 📦 Requisitos Previos
 
-- Java JDK 8 o superior
-- Apache Tomcat 9.x o superior
-- MySQL 5.7 o superior
+- Java JDK 17
+- Apache Tomcat 9.0.115 o superior
+- PostgreSQL 12 o superior
 - Maven 3.6 o superior
 
 ## 🚀 Instalación
@@ -43,51 +43,59 @@ git clone https://github.com/tu-usuario/sistema-gestion-tareas.git
 cd sistema-gestion-tareas
 ```
 
-### 2. Configurar la Base de Datos
+### 2. Configurar la Base de Datos PostgreSQL
 
-1. Crear la base de datos:
-```sql
-CREATE DATABASE gestion_tareas;
-USE gestion_tareas;
+#### Opción A: Usando pgAdmin (GUI)
+1. Abre pgAdmin
+2. Conéctate con tu usuario de PostgreSQL
+3. Crea una base de datos llamada `Gestiondetareas`
+4. Ejecuta el script SQL desde: `src/main/resources/sql/crear-actividades.sql`
+
+#### Opción B: Usando psql (Línea de comandos)
+```bash
+# Crear la base de datos
+createdb -U postgres Gestiondetareas
+
+# Ejecutar los scripts SQL
+psql -U postgres -d Gestiondetareas -f src/main/resources/sql/crear-actividades.sql
 ```
 
-2. Ejecutar los scripts SQL en orden:
-   - `crear_tabla_actividades.sql`
-   - `crear_tabla_subtareas.sql`
-   - `agregar_borrado_logico.sql`
-   - Otros scripts según necesidad
+#### Opción C: Ejecutar el script de instalación (Windows)
+```bash
+crear-tabla-actividades.bat
+```
 
-### 3. Configurar la Conexión
+### 3. Verificar la Conexión
 
-Editar el archivo de configuración de base de datos en:
+Editar el archivo de configuración en:
 ```
 src/main/java/com/sena/gestion/repository/Conexion.java
 ```
 
-Actualizar las credenciales:
+Verificar que los datos sean correctos:
 ```java
-private static final String URL = "jdbc:mysql://localhost:3306/gestion_tareas";
-private static final String USER = "tu_usuario";
-private static final String PASSWORD = "tu_contraseña";
+private static final String DB_URL = "jdbc:postgresql://localhost:5432/Gestiondetareas";
+private static final String DB_USER = "postgres";
+private static final String DB_PASSWORD = "Mia1924.";
 ```
 
 ### 4. Compilar el Proyecto
 
 ```bash
-mvn clean install
+mvn clean package
 ```
 
 ### 5. Desplegar en Tomcat
 
-#### Opción A: Manual
-1. Copiar el archivo `target/SistemaGestionTareas.war` a la carpeta `webapps` de Tomcat
-2. Iniciar Tomcat
-3. Acceder a `http://localhost:8080/SistemaGestionTareas`
-
-#### Opción B: Script
+#### Opción A: Usando el script (Windows)
 ```bash
-compilar_desplegar.bat
+start-tomcat.bat
 ```
+
+#### Opción B: Manual
+1. Copiar `target/SistemaGestionTareas.war` a `apache-tomcat-9.0.115/webapps/`
+2. Iniciar Tomcat desde `apache-tomcat-9.0.115/bin/startup.bat`
+3. Acceder a `http://localhost:8080/SistemaGestionTareas`
 
 ## 📁 Estructura del Proyecto
 
@@ -114,6 +122,22 @@ SistemaGestionTareas/
 ```
 
 ## 🎯 Uso
+
+### Crear una Nueva Actividad
+
+1. **Inicia sesión** con tu cuenta de administrador
+2. **Navega a**: Módulo de Actividades → Nueva Actividad
+3. **Completa el formulario**:
+   - **Título**: Nombre descriptivo de la actividad
+   - **Descripción**: Detalles y propósito
+   - **Instructor/Usuario**: Persona responsable
+   - **Prioridad**: Baja / Media / Alta
+   - **Fecha de Inicio**: Cuándo comienza
+   - **Fecha de Vencimiento**: Cuándo vence
+
+4. **Haz clic en "Crear"**
+
+Para más detalles, consulta: [GUIA-CREAR-ACTIVIDADES.md](GUIA-CREAR-ACTIVIDADES.md)
 
 ### Registro de Usuario
 1. Acceder a la página principal

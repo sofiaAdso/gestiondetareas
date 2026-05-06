@@ -43,6 +43,10 @@ public class Tareaservlet extends HttpServlet {
                 procesarListadoGeneral(request, response, user);
                 break;
 
+            case "nuevo":
+                manejarNuevaTarea(request, response, user);
+                break;
+
             case "cambiarEstado":
                 // Corregido: Ahora maneja la redirección a la actividad origen
                 manejarCambioEstado(request, response);
@@ -131,5 +135,175 @@ public class Tareaservlet extends HttpServlet {
                 : tareaDao.listarPorUsuario(user.getId());
         request.setAttribute("listaTareas", lista);
         request.getRequestDispatcher("listar-tareas.jsp").forward(request, response);
+    }
+
+    private void manejarNuevaTarea(HttpServletRequest request, HttpServletResponse response, Usuario user)
+            throws ServletException, IOException {
+        try {
+            // Obtener el parámetro idActividad si viene del botón "Agregar Tarea"
+            String idActividadParam = request.getParameter("idActividad");
+
+            // Cargar listas necesarias para el formulario
+            List<Categoria> listaCategorias = categoriaDao.listarTodas();
+            List<Actividad> listaActividades = actividadDao.listarTodas();
+            List<Usuario> listaUsuarios = usuarioDao.listarTodos();
+
+            request.setAttribute("listaCategorias", listaCategorias);
+            request.setAttribute("listaActividades", listaActividades);
+            request.setAttribute("listaUsuarios", listaUsuarios);
+
+            // Si viene de una actividad específica, pasar el ID
+            if (idActividadParam != null && !idActividadParam.isEmpty()) {
+                request.setAttribute("idActividadPre", idActividadParam);
+            }
+
+            // Redirigir al formulario de tarea
+            request.getRequestDispatcher("formulario-tarea.jsp").forward(request, response);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error al abrir formulario de nueva tarea", e);
+            response.sendRedirect("ActividadServlet?accion=listar&error=true");
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession(false);
+        Usuario user = (session != null) ? (Usuario) session.getAttribute("usuario") : null;
+
+        if (user == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
+        String accion = request.getParameter("accion");
+
+        if ("registrar".equals(accion)) {
+            procesarRegistroTarea(request, response, user);
+        } else if ("actualizar".equals(accion)) {
+            procesarActualizacionTarea(request, response, user);
+        } else {
+            response.sendRedirect("Tareaservlet?accion=listar");
+        }
+    }
+
+    private void procesarRegistroTarea(HttpServletRequest request, HttpServletResponse response, Usuario user)
+            throws IOException {
+        try {
+            Tarea tarea = new Tarea();
+
+            // Capturar datos del formulario
+            tarea.setTitulo(request.getParameter("txttitulo"));
+            tarea.setDescripcion(request.getParameter("txtdescripcion"));
+
+            // Actividad
+            String idActStr = request.getParameter("txtactividad");
+            if (idActStr != null && !idActStr.isEmpty()) {
+                tarea.setActividad_id(Integer.parseInt(idActStr));
+            }
+
+            // Categoría
+            String idCatStr = request.getParameter("txtcategoria");
+            if (idCatStr != null && !idCatStr.isEmpty()) {
+                tarea.setCategoria_id(Integer.parseInt(idCatStr));
+            }
+
+            // Prioridad
+            tarea.setPrioridad(request.getParameter("txtprioridad"));
+
+            // Fechas
+            String fechaInicio = request.getParameter("txtfecha_inicio");
+            String fechaVencimiento = request.getParameter("txtfecha_vencimiento");
+
+            if (fechaInicio != null && !fechaInicio.isEmpty()) {
+                tarea.setFecha_inicio(Date.valueOf(fechaInicio));
+            }
+            if (fechaVencimiento != null && !fechaVencimiento.isEmpty()) {
+                tarea.setFecha_vencimiento(Date.valueOf(fechaVencimiento));
+            }
+
+            // Usuario
+            String idUsuStr = request.getParameter("txtusuario");
+            if (idUsuStr != null && !idUsuStr.isEmpty()) {
+                tarea.setUsuario_id(Integer.parseInt(idUsuStr));
+            } else {
+                tarea.setUsuario_id(user.getId());
+            }
+
+            // Estado por defecto
+            tarea.setEstado("Pendiente");
+
+            // Guardar
+            boolean creada = tareaDao.registrar(tarea);
+            if (creada) {
+                String idActVolver = request.getParameter("txtactividad");
+                if (idActVolver != null && !idActVolver.isEmpty()) {
+                    response.sendRedirect("ActividadServlet?accion=ver&id=" + idActVolver + "&msg=ok");
+                } else {
+                    response.sendRedirect("Tareaservlet?accion=listar&msg=ok");
+                }
+            } else {
+                response.sendRedirect("Tareaservlet?accion=listar&error=crear");
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error al crear tarea", e);
+            response.sendRedirect("Tareaservlet?accion=listar&error=true");
+        }
+    }
+
+    private void procesarActualizacionTarea(HttpServletRequest request, HttpServletResponse response, Usuario user)
+            throws IOException {
+        try {
+            String idStr = request.getParameter("txtid");
+            if (idStr == null || idStr.isEmpty()) {
+                response.sendRedirect("Tareaservlet?accion=listar&error=id");
+                return;
+            }
+
+            int id = Integer.parseInt(idStr);
+            Tarea tarea = tareaDao.obtenerPorId(id);
+
+            if (tarea == null) {
+                response.sendRedirect("Tareaservlet?accion=listar&error=notfound");
+                return;
+            }
+
+            // Actualizar datos
+            tarea.setTitulo(request.getParameter("txttitulo"));
+            tarea.setDescripcion(request.getParameter("txtdescripcion"));
+
+            String idCatStr = request.getParameter("txtcategoria");
+            if (idCatStr != null && !idCatStr.isEmpty()) {
+                tarea.setCategoria_id(Integer.parseInt(idCatStr));
+            }
+
+            tarea.setPrioridad(request.getParameter("txtprioridad"));
+
+            String fechaInicio = request.getParameter("txtfecha_inicio");
+            String fechaVencimiento = request.getParameter("txtfecha_vencimiento");
+
+            if (fechaInicio != null && !fechaInicio.isEmpty()) {
+                tarea.setFecha_inicio(Date.valueOf(fechaInicio));
+            }
+            if (fechaVencimiento != null && !fechaVencimiento.isEmpty()) {
+                tarea.setFecha_vencimiento(Date.valueOf(fechaVencimiento));
+            }
+
+            // Actualizar
+            if (tareaDao.actualizar(tarea)) {
+                String idActVolver = request.getParameter("txtactividad");
+                if (idActVolver != null && !idActVolver.isEmpty()) {
+                    response.sendRedirect("ActividadServlet?accion=ver&id=" + idActVolver + "&msg=ok");
+                } else {
+                    response.sendRedirect("Tareaservlet?accion=listar&msg=ok");
+                }
+            } else {
+                response.sendRedirect("Tareaservlet?accion=listar&error=update");
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error al actualizar tarea", e);
+            response.sendRedirect("Tareaservlet?accion=listar&error=true");
+        }
     }
 }
