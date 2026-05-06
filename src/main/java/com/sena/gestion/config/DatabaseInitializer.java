@@ -23,21 +23,45 @@ public class DatabaseInitializer implements ServletContextListener {
         log.info("🚀 Iniciando creación automática de tablas...");
 
         try {
-            // 1. Leer application.properties
+            // 1. Leer application.properties (para LOCAL)
             Properties props = new Properties();
             InputStream propsStream = getClass().getClassLoader()
                     .getResourceAsStream("application.properties");
 
             if (propsStream == null) {
-                log.severe("❌ No se encontró application.properties");
-                return;
+                log.warning("⚠️ No se encontró application.properties (puede ser Railway)");
+            } else {
+                props.load(propsStream);
             }
-            props.load(propsStream);
 
-            String url    = props.getProperty("db.url");
-            String user   = props.getProperty("db.user");
-            String pass   = props.getProperty("db.pass");
-            String driver = props.getProperty("db.driver");
+            String url;
+            String user;
+            String pass;
+            String driver;
+
+            // 🔥 Detectar entorno Railway
+            String databaseUrl = System.getenv("DATABASE_URL");
+
+            if (databaseUrl != null) {
+                log.info("🌍 Detectado entorno Railway");
+
+                if (databaseUrl.startsWith("postgres://")) {
+                    databaseUrl = databaseUrl.replace("postgres://", "jdbc:postgresql://");
+                }
+
+                url = databaseUrl;
+                user = null;
+                pass = null;
+                driver = "org.postgresql.Driver";
+
+            } else {
+                log.info("💻 Usando configuración LOCAL");
+
+                url    = props.getProperty("db.url");
+                user   = props.getProperty("db.user");
+                pass   = props.getProperty("db.pass");
+                driver = props.getProperty("db.driver");
+            }
 
             log.info("📡 Conectando a: " + url);
             Class.forName(driver);
@@ -53,12 +77,19 @@ public class DatabaseInitializer implements ServletContextListener {
 
             String sqlCompleto = new String(sqlStream.readAllBytes(), StandardCharsets.UTF_8);
 
-            // 3. Parsear sentencias correctamente (ignorar comentarios)
+            // 3. Parsear sentencias
             List<String> sentencias = parsearSQL(sqlCompleto);
 
-            // 4. Ejecutar cada sentencia
-            try (Connection conn = DriverManager.getConnection(url, user, pass);
-                 Statement stmt = conn.createStatement()) {
+            // 4. Conexión dinámica
+            Connection conn;
+
+            if (user == null) {
+                conn = DriverManager.getConnection(url);
+            } else {
+                conn = DriverManager.getConnection(url, user, pass);
+            }
+
+            try (conn; Statement stmt = conn.createStatement()) {
 
                 int ejecutadas = 0;
                 for (String sentencia : sentencias) {
@@ -69,6 +100,7 @@ public class DatabaseInitializer implements ServletContextListener {
                         log.warning("⚠️ Sentencia omitida: " + e.getMessage());
                     }
                 }
+
                 log.info("✅ Tablas creadas/verificadas. Sentencias ejecutadas: " + ejecutadas);
             }
 
@@ -78,10 +110,6 @@ public class DatabaseInitializer implements ServletContextListener {
         }
     }
 
-    /**
-     * Parsea el SQL eliminando comentarios y dividiendo por ";"
-     * de forma segura para bloques multilínea.
-     */
     private List<String> parsearSQL(String sql) {
         List<String> resultado = new ArrayList<>();
         StringBuilder actual = new StringBuilder();
@@ -90,12 +118,10 @@ public class DatabaseInitializer implements ServletContextListener {
         for (String linea : lineas) {
             String lineaTrim = linea.trim();
 
-            // Ignorar líneas vacías y comentarios completos
             if (lineaTrim.isEmpty() || lineaTrim.startsWith("--")) {
                 continue;
             }
 
-            // Eliminar comentario inline al final de la línea
             int comentario = lineaTrim.indexOf("--");
             if (comentario > 0) {
                 lineaTrim = lineaTrim.substring(0, comentario).trim();
@@ -103,10 +129,8 @@ public class DatabaseInitializer implements ServletContextListener {
 
             actual.append(lineaTrim).append(" ");
 
-            // Si la línea termina con ";" es el fin de una sentencia
             if (lineaTrim.endsWith(";")) {
                 String sentencia = actual.toString().trim();
-                // Quitar el ";" final porque Statement.execute() no lo necesita
                 sentencia = sentencia.substring(0, sentencia.length() - 1).trim();
                 if (!sentencia.isEmpty()) {
                     resultado.add(sentencia);
