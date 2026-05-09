@@ -11,6 +11,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,27 +43,20 @@ public class Tareaservlet extends HttpServlet {
             case "listar":
                 procesarListadoGeneral(request, response, user);
                 break;
-
             case "nuevo":
                 manejarNuevaTarea(request, response, user);
                 break;
-
             case "cambiarEstado":
-                // Corregido: Ahora maneja la redirección a la actividad origen
                 manejarCambioEstado(request, response);
                 break;
-
             case "eliminar":
                 manejarEliminacion(request, response);
                 break;
-
             case "listarPorActividad":
-                // Esta es la acción que llama el botón "Ver" del ActividadServlet
                 procesarListadoPorActividad(request, response);
                 break;
-
             default:
-                response.sendRedirect("ActividadServlet?accion=mis-actividades");
+                response.sendRedirect("ActividadServlet?accion=listar");
                 break;
         }
     }
@@ -70,98 +64,103 @@ public class Tareaservlet extends HttpServlet {
     private void procesarListadoPorActividad(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            // El parámetro 'id' viene del botón "Ver"
             String idStr = request.getParameter("id");
-            if (idStr != null) {
+            if (idStr != null && !idStr.isEmpty()) {
                 int idAct = Integer.parseInt(idStr);
                 Actividad act = actividadDao.obtenerPorId(idAct);
                 List<Tarea> tareas = tareaDao.listarPorActividad(idAct);
-
                 request.setAttribute("actividad", act);
-                request.setAttribute("listaTareas", tareas);
-
-                // Redirige a la vista moderna que creamos
+                request.setAttribute("listaTareas", tareas != null ? tareas : new ArrayList<>());
                 request.getRequestDispatcher("ver-tareas.jsp").forward(request, response);
             } else {
-                response.sendRedirect("ActividadServlet?accion=mis-actividades");
+                response.sendRedirect("ActividadServlet?accion=listar");
             }
         } catch (Exception e) {
-            response.sendRedirect("ActividadServlet?accion=mis-actividades&error=id");
+            LOGGER.log(Level.SEVERE, "Error al listar tareas por actividad", e);
+            response.sendRedirect("ActividadServlet?accion=listar&error=proceso");
         }
     }
 
-    private void manejarCambioEstado(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void manejarCambioEstado(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
         try {
             int idTarea = Integer.parseInt(request.getParameter("id"));
             String nuevoEstado = request.getParameter("estado");
-            // Importante: capturamos el id de la actividad para volver a la misma pantalla
             String idActVolver = request.getParameter("actividadId");
 
             if (tareaDao.actualizarEstado(idTarea, nuevoEstado)) {
-                // Si venimos desde la vista de una actividad, volvemos a ella
                 if (idActVolver != null && !idActVolver.isEmpty()) {
                     response.sendRedirect("ActividadServlet?accion=ver&id=" + idActVolver + "&msg=ok");
                 } else {
                     response.sendRedirect("Tareaservlet?accion=listar&msg=ok");
                 }
+            } else {
+                response.sendRedirect("ActividadServlet?accion=listar&error=actualizar");
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error al cambiar estado", e);
-            response.sendRedirect("ActividadServlet?accion=mis-actividades&error=true");
+            LOGGER.log(Level.SEVERE, "Error al cambiar estado de tarea", e);
+            response.sendRedirect("ActividadServlet?accion=listar&error=proceso");
         }
     }
 
-    private void manejarEliminacion(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void manejarEliminacion(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             String idActVolver = request.getParameter("actividadId");
-
             if (tareaDao.eliminar(id)) {
                 if (idActVolver != null && !idActVolver.isEmpty()) {
-                    response.sendRedirect("ActividadServlet?accion=ver&id=" + idActVolver + "&msg=del");
+                    response.sendRedirect("ActividadServlet?accion=ver&id=" + idActVolver + "&msg=ok");
                 } else {
-                    response.sendRedirect("Tareaservlet?accion=listar&msg=del");
+                    response.sendRedirect("Tareaservlet?accion=listar&msg=ok");
                 }
+            } else {
+                response.sendRedirect("ActividadServlet?accion=listar&error=eliminar");
             }
         } catch (Exception e) {
-            response.sendRedirect("ActividadServlet?accion=mis-actividades&error=del");
+            LOGGER.log(Level.SEVERE, "Error al eliminar tarea", e);
+            response.sendRedirect("ActividadServlet?accion=listar&error=proceso");
         }
     }
 
     private void procesarListadoGeneral(HttpServletRequest request, HttpServletResponse response, Usuario user)
             throws ServletException, IOException {
-        List<Tarea> lista = "Administrador".equals(user.getRol())
-                ? tareaDao.listar()
-                : tareaDao.listarPorUsuario(user.getId());
-        request.setAttribute("listaTareas", lista);
-        request.getRequestDispatcher("listar-tareas.jsp").forward(request, response);
+        try {
+            List<Tarea> lista = "Administrador".equals(user.getRol())
+                    ? tareaDao.listar()
+                    : tareaDao.listarPorUsuario(user.getId());
+            request.setAttribute("listaTareas", lista != null ? lista : new ArrayList<>());
+            request.getRequestDispatcher("listar-tareas.jsp").forward(request, response);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error al listar tareas", e);
+            request.setAttribute("listaTareas", new ArrayList<>());
+            request.getRequestDispatcher("listar-tareas.jsp").forward(request, response);
+        }
     }
 
     private void manejarNuevaTarea(HttpServletRequest request, HttpServletResponse response, Usuario user)
             throws ServletException, IOException {
         try {
-            // Obtener el parámetro idActividad si viene del botón "Agregar Tarea"
             String idActividadParam = request.getParameter("idActividad");
 
-            // Cargar listas necesarias para el formulario
             List<Categoria> listaCategorias = categoriaDao.listarTodas();
             List<Actividad> listaActividades = actividadDao.listarTodas();
-            List<Usuario> listaUsuarios = usuarioDao.listarTodos();
+            List<Usuario>   listaUsuarios    = usuarioDao.listarTodos();
 
-            request.setAttribute("listaCategorias", listaCategorias);
-            request.setAttribute("listaActividades", listaActividades);
-            request.setAttribute("listaUsuarios", listaUsuarios);
+            request.setAttribute("listaCategorias",  listaCategorias  != null ? listaCategorias  : new ArrayList<>());
+            request.setAttribute("listaActividades", listaActividades != null ? listaActividades : new ArrayList<>());
+            request.setAttribute("listaUsuarios",    listaUsuarios    != null ? listaUsuarios    : new ArrayList<>());
 
-            // Si viene de una actividad específica, pasar el ID
             if (idActividadParam != null && !idActividadParam.isEmpty()) {
                 request.setAttribute("idActividadPre", idActividadParam);
             }
 
-            // Redirigir al formulario de tarea
             request.getRequestDispatcher("formulario-tarea.jsp").forward(request, response);
+
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error al abrir formulario de nueva tarea", e);
-            response.sendRedirect("ActividadServlet?accion=listar&error=true");
+            // ✅ CORREGIDO: error=proceso en lugar de error=true
+            response.sendRedirect("ActividadServlet?accion=listar&error=proceso");
         }
     }
 
@@ -192,54 +191,36 @@ public class Tareaservlet extends HttpServlet {
             throws IOException {
         try {
             Tarea tarea = new Tarea();
-
-            // Capturar datos del formulario
             tarea.setTitulo(request.getParameter("txttitulo"));
             tarea.setDescripcion(request.getParameter("txtdescripcion"));
 
-            // Actividad
             String idActStr = request.getParameter("txtactividad");
             if (idActStr != null && !idActStr.isEmpty()) {
                 tarea.setActividad_id(Integer.parseInt(idActStr));
             }
 
-            // Categoría
             String idCatStr = request.getParameter("txtcategoria");
             if (idCatStr != null && !idCatStr.isEmpty()) {
                 tarea.setCategoria_id(Integer.parseInt(idCatStr));
             }
 
-            // Prioridad
             tarea.setPrioridad(request.getParameter("txtprioridad"));
 
-            // Fechas
             String fechaInicio = request.getParameter("txtfecha_inicio");
-            String fechaVencimiento = request.getParameter("txtfecha_vencimiento");
+            String fechaVenc   = request.getParameter("txtfecha_vencimiento");
+            if (fechaInicio != null && !fechaInicio.isEmpty()) tarea.setFecha_inicio(Date.valueOf(fechaInicio));
+            if (fechaVenc   != null && !fechaVenc.isEmpty())   tarea.setFecha_vencimiento(Date.valueOf(fechaVenc));
 
-            if (fechaInicio != null && !fechaInicio.isEmpty()) {
-                tarea.setFecha_inicio(Date.valueOf(fechaInicio));
-            }
-            if (fechaVencimiento != null && !fechaVencimiento.isEmpty()) {
-                tarea.setFecha_vencimiento(Date.valueOf(fechaVencimiento));
-            }
-
-            // Usuario
             String idUsuStr = request.getParameter("txtusuario");
-            if (idUsuStr != null && !idUsuStr.isEmpty()) {
-                tarea.setUsuario_id(Integer.parseInt(idUsuStr));
-            } else {
-                tarea.setUsuario_id(user.getId());
-            }
+            tarea.setUsuario_id((idUsuStr != null && !idUsuStr.isEmpty())
+                    ? Integer.parseInt(idUsuStr) : user.getId());
 
-            // Estado por defecto
             tarea.setEstado("Pendiente");
 
-            // Guardar
             boolean creada = tareaDao.registrar(tarea);
             if (creada) {
-                String idActVolver = request.getParameter("txtactividad");
-                if (idActVolver != null && !idActVolver.isEmpty()) {
-                    response.sendRedirect("ActividadServlet?accion=ver&id=" + idActVolver + "&msg=ok");
+                if (idActStr != null && !idActStr.isEmpty()) {
+                    response.sendRedirect("ActividadServlet?accion=ver&id=" + idActStr + "&msg=ok");
                 } else {
                     response.sendRedirect("Tareaservlet?accion=listar&msg=ok");
                 }
@@ -248,7 +229,7 @@ public class Tareaservlet extends HttpServlet {
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error al crear tarea", e);
-            response.sendRedirect("Tareaservlet?accion=listar&error=true");
+            response.sendRedirect("Tareaservlet?accion=listar&error=proceso");
         }
     }
 
@@ -265,32 +246,23 @@ public class Tareaservlet extends HttpServlet {
             Tarea tarea = tareaDao.obtenerPorId(id);
 
             if (tarea == null) {
-                response.sendRedirect("Tareaservlet?accion=listar&error=notfound");
+                response.sendRedirect("Tareaservlet?accion=listar&error=no_encontrada");
                 return;
             }
 
-            // Actualizar datos
             tarea.setTitulo(request.getParameter("txttitulo"));
             tarea.setDescripcion(request.getParameter("txtdescripcion"));
 
             String idCatStr = request.getParameter("txtcategoria");
-            if (idCatStr != null && !idCatStr.isEmpty()) {
-                tarea.setCategoria_id(Integer.parseInt(idCatStr));
-            }
+            if (idCatStr != null && !idCatStr.isEmpty()) tarea.setCategoria_id(Integer.parseInt(idCatStr));
 
             tarea.setPrioridad(request.getParameter("txtprioridad"));
 
             String fechaInicio = request.getParameter("txtfecha_inicio");
-            String fechaVencimiento = request.getParameter("txtfecha_vencimiento");
+            String fechaVenc   = request.getParameter("txtfecha_vencimiento");
+            if (fechaInicio != null && !fechaInicio.isEmpty()) tarea.setFecha_inicio(Date.valueOf(fechaInicio));
+            if (fechaVenc   != null && !fechaVenc.isEmpty())   tarea.setFecha_vencimiento(Date.valueOf(fechaVenc));
 
-            if (fechaInicio != null && !fechaInicio.isEmpty()) {
-                tarea.setFecha_inicio(Date.valueOf(fechaInicio));
-            }
-            if (fechaVencimiento != null && !fechaVencimiento.isEmpty()) {
-                tarea.setFecha_vencimiento(Date.valueOf(fechaVencimiento));
-            }
-
-            // Actualizar
             if (tareaDao.actualizar(tarea)) {
                 String idActVolver = request.getParameter("txtactividad");
                 if (idActVolver != null && !idActVolver.isEmpty()) {
@@ -299,11 +271,11 @@ public class Tareaservlet extends HttpServlet {
                     response.sendRedirect("Tareaservlet?accion=listar&msg=ok");
                 }
             } else {
-                response.sendRedirect("Tareaservlet?accion=listar&error=update");
+                response.sendRedirect("Tareaservlet?accion=listar&error=actualizar");
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error al actualizar tarea", e);
-            response.sendRedirect("Tareaservlet?accion=listar&error=true");
+            response.sendRedirect("Tareaservlet?accion=listar&error=proceso");
         }
     }
 }

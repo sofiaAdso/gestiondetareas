@@ -221,11 +221,9 @@
     </div>
 
     <script>
-        // ✅ CORREGIDO: usa fetch() en lugar de window.location.href
         function cambiarEstado(actividadId, selectElement) {
             const nuevoEstado    = selectElement.value;
             const estadoAnterior = selectElement.getAttribute('data-estado-actual');
-
             if (nuevoEstado === estadoAnterior) return;
 
             const config = {
@@ -243,33 +241,19 @@
             }).then(result => {
                 if (result.isConfirmed) {
                     Swal.fire({ title:'Actualizando...', allowOutsideClick:false, didOpen:()=>Swal.showLoading() });
-
-                    // ✅ fetch en lugar de redirigir — el servidor guarda en BD y responde JSON
                     fetch('ActividadServlet?accion=cambiarEstado&id=' + actividadId +
                           '&estado=' + encodeURIComponent(nuevoEstado))
                     .then(res => res.json())
                     .then(data => {
                         if (data.ok) {
-                            // Actualizar badge visualmente sin recargar
                             const card   = selectElement.closest('.actividad-card');
                             const badge  = card.querySelector('.badge');
-                            const iconos = {
-                                'Pendiente':   'fa-clock',
-                                'En Progreso': 'fa-spinner fa-spin',
-                                'Completada':  'fa-check-circle'
-                            };
-                            const clases = {
-                                'Pendiente':   'estado-pendiente',
-                                'En Progreso': 'estado-progreso',
-                                'Completada':  'estado-completada'
-                            };
+                            const iconos = { 'Pendiente':'fa-clock', 'En Progreso':'fa-spinner fa-spin', 'Completada':'fa-check-circle' };
+                            const clases = { 'Pendiente':'estado-pendiente', 'En Progreso':'estado-progreso', 'Completada':'estado-completada' };
                             badge.className = 'badge ' + (clases[nuevoEstado] || 'estado-progreso');
                             badge.innerHTML = '<i class="fas ' + (iconos[nuevoEstado] || 'fa-circle') + '"></i> ' + nuevoEstado;
                             selectElement.setAttribute('data-estado-actual', nuevoEstado);
-
-                            Swal.fire({ icon:'success', title:'¡Listo!',
-                                text:'Estado actualizado. El administrador verá el cambio.',
-                                timer:1800, showConfirmButton:false });
+                            Swal.fire({ icon:'success', title:'¡Listo!', text:'Estado actualizado.', timer:1800, showConfirmButton:false });
                         } else {
                             selectElement.value = estadoAnterior;
                             Swal.fire('Error', data.mensaje || 'No se pudo actualizar', 'error');
@@ -297,13 +281,10 @@
             });
         }
 
-        // ✅ CORREGIDO: mensajes completos para todos los códigos de error posibles
+        // ✅ Mapa completo de todos los códigos de error posibles
         const params = new URLSearchParams(window.location.search);
         if (params.get('msg') === 'ok') {
             Swal.fire({ icon:'success', title:'¡Hecho!', text:'Operación exitosa', timer:2000, showConfirmButton:false });
-        }
-        if (params.get('msg') === 'estado_actualizado') {
-            Swal.fire({ icon:'success', title:'¡Estado actualizado!', text:'El estado cambió correctamente.', timer:2000, showConfirmButton:false });
         }
         if (params.get('msg') === 'eliminado') {
             Swal.fire({ icon:'success', title:'Eliminado', text:'La actividad fue eliminada.', timer:2000, showConfirmButton:false });
@@ -316,14 +297,17 @@
                 datos_invalidos:'Error al cargar la actividad',
                 eliminar:       'Error al eliminar la actividad',
                 proceso:        'Error interno al procesar la solicitud',
-                crear_actividad:'Error al crear la actividad'
+                crear_actividad:'Error al crear la actividad',
+                crear:          'Error al crear el elemento',
+                id:             'ID inválido',
+                del:            'Error al eliminar',
+                // ✅ Claves genéricas para no mostrar código crudo
+                true:           'Ocurrió un error. Por favor intenta de nuevo.',
+                false:          'La operación no pudo completarse.'
             };
             const codigo = params.get('error');
-            Swal.fire({
-                icon:'error',
-                title:'Error: ' + codigo,
-                text: msgs[codigo] || 'Ocurrió un error inesperado'
-            });
+            const mensaje = msgs[codigo] || 'Ocurrió un error inesperado (' + codigo + ')';
+            Swal.fire({ icon:'error', title:'Error', text: mensaje });
         }
     </script>
 </body>

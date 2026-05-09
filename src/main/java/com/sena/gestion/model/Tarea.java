@@ -7,22 +7,17 @@ public class Tarea {
     private int id;
     private String titulo;
     private String descripcion;
-
     private int actividadId;
     private int categoriaId;
     private int usuarioId;
-
     private String prioridad;
     private String estado;
-
     private Date fechaInicio;
     private Date fechaVencimiento;
-
-    // ✅ AGREGADO: campo para mostrar el nombre de la categoría en el JSP
     private String nombreCategoria;
 
     // ============================
-    // GETTERS Y SETTERS
+    // GETTERS Y SETTERS PRINCIPALES
     // ============================
 
     public int getId() { return id; }
@@ -55,20 +50,18 @@ public class Tarea {
     public Date getFechaVencimiento() { return fechaVencimiento; }
     public void setFechaVencimiento(Date fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
 
-    // ✅ AGREGADO: getter y setter para nombreCategoria
     public String getNombreCategoria() { return nombreCategoria; }
     public void setNombreCategoria(String nombreCategoria) { this.nombreCategoria = nombreCategoria; }
 
-    // ── Aliases para compatibilidad con código legacy ──
+    // ── Aliases legacy (para compatibilidad con servlets y JSPs que usan guion bajo) ──
     public String getNombreActividad() { return null; }
 
-    public void setFecha_inicio(Date fechaInicio) { this.fechaInicio = fechaInicio; }
-    public void setFecha_vencimiento(Date fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
+    public void setFecha_inicio(Date fechaInicio)       { this.fechaInicio = fechaInicio; }
+    public void setFecha_vencimiento(Date fechaVenc)    { this.fechaVencimiento = fechaVenc; }
+    public Date getFecha_inicio()                        { return this.fechaInicio; }
+    public Date getFecha_vencimiento()                   { return this.fechaVencimiento; }
 
-    public Date getFecha_inicio() { return this.fechaInicio; }
-    public Date getFecha_vencimiento() { return this.fechaVencimiento; }
-
-    public void setActividad_id(int actividadId) { this.actividadId = actividadId; }
-    public void setCategoria_id(int categoriaId) { this.categoriaId = categoriaId; }
-    public void setUsuario_id(int usuarioId) { this.usuarioId = usuarioId; }
+    public void setActividad_id(int actividadId)        { this.actividadId = actividadId; }
+    public void setCategoria_id(int categoriaId)        { this.categoriaId = categoriaId; }
+    public void setUsuario_id(int usuarioId)            { this.usuarioId = usuarioId; }
 }
