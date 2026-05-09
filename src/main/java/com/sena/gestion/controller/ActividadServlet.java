@@ -130,6 +130,7 @@ public class ActividadServlet extends HttpServlet {
         }
     }
 
+    // ── DEBUG: muestra el error real en el navegador ──
     private void manejarVer(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
@@ -143,7 +144,23 @@ public class ActividadServlet extends HttpServlet {
                 response.sendRedirect("ActividadServlet?accion=listar&error=no_encontrada");
             }
         } catch (Exception e) {
-            response.sendRedirect("ActividadServlet?accion=listar&error=datos_invalidos");
+            response.setContentType("text/html;charset=UTF-8");
+            response.setStatus(200);
+            java.io.PrintWriter out = response.getWriter();
+            out.println("<!DOCTYPE html><html><body style='font-family:monospace;padding:20px;background:#fff'>");
+            out.println("<h2 style='color:red'>ERROR EN manejarVer</h2>");
+            out.println("<h3>Tipo: " + e.getClass().getName() + "</h3>");
+            out.println("<h3>Mensaje: " + (e.getMessage() != null ? e.getMessage() : "null") + "</h3>");
+            if (e.getCause() != null) {
+                out.println("<h3>Causa: " + e.getCause().getMessage() + "</h3>");
+            }
+            out.println("<hr><h3>Stack Trace:</h3><pre style='color:#c00'>");
+            for (StackTraceElement el : e.getStackTrace()) {
+                out.println(el.toString());
+            }
+            out.println("</pre><br><a href='ActividadServlet?accion=listar'>Volver</a>");
+            out.println("</body></html>");
+            out.flush();
         }
     }
 
@@ -172,23 +189,39 @@ public class ActividadServlet extends HttpServlet {
 
     private void manejarCambioEstado(HttpServletRequest request, HttpServletResponse response,
                                      Usuario user) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             String estado = request.getParameter("estado");
-            actividadDao.actualizarEstado(id, estado);
-            response.sendRedirect("ActividadServlet?accion=listar&msg=estado_actualizado");
+
+            if (estado == null || estado.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"ok\":false,\"mensaje\":\"Estado invalido\"}");
+                return;
+            }
+
+            boolean actualizado = actividadDao.actualizarEstado(id, estado);
+
+            if (actualizado) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("{\"ok\":true,\"mensaje\":\"Estado actualizado\",\"estado\":\"" + estado + "\"}");
+            } else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().write("{\"ok\":false,\"mensaje\":\"No se pudo actualizar\"}");
+            }
         } catch (Exception e) {
-            response.sendRedirect("ActividadServlet?accion=listar&error=actualizar");
+            LOGGER.log(Level.SEVERE, "Error al cambiar estado", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"ok\":false,\"mensaje\":\"Error interno\"}");
         }
     }
 
-    // ── METODO CORREGIDO PARA FUNCIONAR CON EL NUEVO FORMULARIO ──
     private void procesarGuardado(HttpServletRequest request, HttpServletResponse response,
                                   Usuario user, String accion) throws IOException {
         try {
             Actividad a = new Actividad();
 
-            // 1. Manejo de ID para actualización
             if ("actualizar".equals(accion)) {
                 String idStr = request.getParameter("id");
                 if (idStr != null && !idStr.isEmpty()) {
@@ -196,35 +229,29 @@ public class ActividadServlet extends HttpServlet {
                 }
             }
 
-            // 2. Captura de campos básicos
             a.setTitulo(request.getParameter("titulo"));
             a.setDescripcion(request.getParameter("descripcion"));
             a.setPrioridad(request.getParameter("prioridad"));
 
-            // 3. Estado: Prioriza el valor del formulario (ej. "Pendiente"), si es nulo usa "Pendiente" por defecto
             String estadoForm = request.getParameter("estado");
             a.setEstado((estadoForm != null && !estadoForm.isEmpty()) ? estadoForm : "Pendiente");
 
-            // 4. Manejo de Fechas (Evita error si el campo llega vacío)
             String fechaIni = request.getParameter("fecha_inicio");
             String fechaFin = request.getParameter("fecha_fin");
             try {
                 if (fechaIni != null && !fechaIni.isEmpty()) a.setFecha_inicio(Date.valueOf(fechaIni));
                 if (fechaFin != null && !fechaFin.isEmpty()) a.setFecha_fin(Date.valueOf(fechaFin));
             } catch (IllegalArgumentException e) {
-                LOGGER.warning("Formato de fecha inválido recibido");
+                LOGGER.warning("Formato de fecha invalido recibido");
             }
 
-            // 5. Usuario Asignado
             String uIdStr = request.getParameter("usuario_id");
             a.setUsuario_id((uIdStr != null && !uIdStr.isEmpty()) ? Integer.parseInt(uIdStr) : user.getId());
 
-            // 6. Ejecución en DAO
             if ("actualizar".equals(accion)) {
                 actividadDao.actualizar(a);
                 response.sendRedirect("ActividadServlet?accion=listar&msg=ok");
             } else {
-                // Para creación usamos el método que devuelve el ID
                 int nuevoId = actividadDao.crearYRetornarId(a);
                 if (nuevoId > 0) {
                     response.sendRedirect("ActividadServlet?accion=listar&msg=ok");

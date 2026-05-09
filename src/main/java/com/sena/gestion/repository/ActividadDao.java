@@ -63,7 +63,8 @@ public class ActividadDao {
             ps.setDate(5, a.getFecha_fin()    != null ? new java.sql.Date(a.getFecha_fin().getTime())    : null);
             ps.setString(6, a.getPrioridad());
             ps.setString(7, a.getEstado() != null ? a.getEstado() : "En Progreso");
-            ps.setString(8, a.getColor());
+            // ✅ CORREGIDO: nunca inserta null en color
+            ps.setString(8, a.getColor() != null ? a.getColor() : "#667eea");
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt(1);
             }
@@ -83,7 +84,8 @@ public class ActividadDao {
             ps.setDate(4, a.getFecha_fin()    != null ? new java.sql.Date(a.getFecha_fin().getTime())    : null);
             ps.setString(5, a.getPrioridad());
             ps.setString(6, a.getEstado() != null ? a.getEstado() : "En Progreso");
-            ps.setString(7, a.getColor());
+            // ✅ CORREGIDO: nunca actualiza a null en color
+            ps.setString(7, a.getColor() != null ? a.getColor() : "#667eea");
             ps.setInt(8,    a.getUsuario_id());
             ps.setInt(9,    a.getId());
             return ps.executeUpdate() > 0;
@@ -140,7 +142,14 @@ public class ActividadDao {
         a.setFecha_fin(rs.getDate("fecha_fin"));
         a.setPrioridad(rs.getString("prioridad"));
         a.setEstado(rs.getString("estado"));
-        try { a.setColor(rs.getString("color")); } catch (SQLException ignored) {}
+
+        // ✅ CORREGIDO: color nunca queda null, siempre tiene valor por defecto
+        try {
+            String color = rs.getString("color");
+            a.setColor(color != null && !color.isEmpty() ? color : "#667eea");
+        } catch (SQLException ignored) {
+            a.setColor("#667eea");
+        }
         return a;
     }
 }

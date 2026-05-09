@@ -1,36 +1,29 @@
 package com.sena.gestion.model;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 
-/**
- * Modelo Tarea actualizado para soportar relación con Actividades
- */
 public class Tarea {
-    // Atributos base (Coinciden con las columnas de la BD)
+
     private int id;
     private String titulo;
     private String descripcion;
+
+    private int actividadId;
+    private int categoriaId;
+    private int usuarioId;
+
     private String prioridad;
     private String estado;
-    private Date fecha_inicio;
-    private Date fecha_vencimiento;
-    private int actividad_id; // LLAVE FORÁNEA: Conecta con la tabla actividades
-    private int usuario_id;
-    private int categoria_id;
-    private boolean completada;
-    private String notas;
-    private Timestamp fecha_creacion;
 
-    // Atributos de apoyo (Para mostrar nombres en lugar de IDs en la tabla)
-    private String nombreActividad;
-    private String nombreUsuario;
+    private Date fechaInicio;
+    private Date fechaVencimiento;
+
+    // ✅ AGREGADO: campo para mostrar el nombre de la categoría en el JSP
     private String nombreCategoria;
 
-    // Constructor vacío (Obligatorio para frameworks y DAOs)
-    public Tarea() {}
-
-    // --- GETTERS Y SETTERS ESTÁNDAR ---
+    // ============================
+    // GETTERS Y SETTERS
+    // ============================
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -41,61 +34,41 @@ public class Tarea {
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
+    public int getActividadId() { return actividadId; }
+    public void setActividadId(int actividadId) { this.actividadId = actividadId; }
+
+    public int getCategoriaId() { return categoriaId; }
+    public void setCategoriaId(int categoriaId) { this.categoriaId = categoriaId; }
+
+    public int getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(int usuarioId) { this.usuarioId = usuarioId; }
+
     public String getPrioridad() { return prioridad; }
     public void setPrioridad(String prioridad) { this.prioridad = prioridad; }
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
 
-    public Date getFecha_inicio() { return fecha_inicio; }
-    public void setFecha_inicio(Date fecha_inicio) { this.fecha_inicio = fecha_inicio; }
+    public Date getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(Date fechaInicio) { this.fechaInicio = fechaInicio; }
 
-    public Date getFecha_vencimiento() { return fecha_vencimiento; }
-    public void setFecha_vencimiento(Date fecha_vencimiento) { this.fecha_vencimiento = fecha_vencimiento; }
+    public Date getFechaVencimiento() { return fechaVencimiento; }
+    public void setFechaVencimiento(Date fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
 
-    public int getActividad_id() { return actividad_id; }
-    public void setActividad_id(int actividad_id) { this.actividad_id = actividad_id; }
-
-    public int getUsuario_id() { return usuario_id; }
-    public void setUsuario_id(int usuario_id) { this.usuario_id = usuario_id; }
-
-    public int getCategoria_id() { return categoria_id; }
-    public void setCategoria_id(int categoria_id) { this.categoria_id = categoria_id; }
-
-    public boolean isCompletada() { return completada; }
-    public void setCompletada(boolean completada) { this.completada = completada; }
-
-    public String getNotas() { return notas; }
-    public void setNotas(String notas) { this.notas = notas; }
-
-    public Timestamp getFecha_creacion() { return fecha_creacion; }
-    public void setFecha_creacion(Timestamp fecha_creacion) { this.fecha_creacion = fecha_creacion; }
-
-    // --- GETTERS Y SETTERS PARA NOMBRES (JOINs) ---
-
-    public String getNombreActividad() { return nombreActividad; }
-    public void setNombreActividad(String nombreActividad) { this.nombreActividad = nombreActividad; }
-
-    public String getNombreUsuario() { return nombreUsuario; }
-    public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
-
+    // ✅ AGREGADO: getter y setter para nombreCategoria
     public String getNombreCategoria() { return nombreCategoria; }
     public void setNombreCategoria(String nombreCategoria) { this.nombreCategoria = nombreCategoria; }
 
-    // --- MÉTODOS EN camelCase (Para compatibilidad con etiquetas <c:out value="${tarea.actividadId}"/> en JSP) ---
+    // ── Aliases para compatibilidad con código legacy ──
+    public String getNombreActividad() { return null; }
 
-    public int getActividadId() { return actividad_id; }
-    public void setActividadId(int actividadId) { this.actividad_id = actividadId; }
+    public void setFecha_inicio(Date fechaInicio) { this.fechaInicio = fechaInicio; }
+    public void setFecha_vencimiento(Date fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
 
-    public int getUsuarioId() { return usuario_id; }
-    public void setUsuarioId(int usuarioId) { this.usuario_id = usuarioId; }
+    public Date getFecha_inicio() { return this.fechaInicio; }
+    public Date getFecha_vencimiento() { return this.fechaVencimiento; }
 
-    public int getCategoriaId() { return categoria_id; }
-    public void setCategoriaId(int categoriaId) { this.categoria_id = categoriaId; }
-
-    public Date getFechaInicio() { return fecha_inicio; }
-    public void setFechaInicio(Date fechaInicio) { this.fecha_inicio = fechaInicio; }
-
-    public Date getFechaVencimiento() { return fecha_vencimiento; }
-    public void setFechaVencimiento(Date fechaVencimiento) { this.fecha_vencimiento = fechaVencimiento; }
+    public void setActividad_id(int actividadId) { this.actividadId = actividadId; }
+    public void setCategoria_id(int categoriaId) { this.categoriaId = categoriaId; }
+    public void setUsuario_id(int usuarioId) { this.usuarioId = usuarioId; }
 }

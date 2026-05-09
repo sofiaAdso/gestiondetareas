@@ -13,7 +13,10 @@
         return;
     }
 
-    // Solo el administrador puede editar y agregar tareas
+    // ✅ CORREGIDO: color nunca es null en el JSP
+    String actColor = (actividad.getColor() != null && !actividad.getColor().isEmpty())
+                      ? actividad.getColor() : "#667eea";
+
     boolean esAdministrador = "Administrador".equals(user.getRol());
 
     int totalTareas = listaTareas != null ? listaTareas.size() : 0;
@@ -29,7 +32,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title><%= actividad.getTitulo() %> - Detalles</title>
+    <title><%= actividad.getTitulo() != null ? actividad.getTitulo() : "Actividad" %> - Detalles</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -52,7 +55,7 @@
             padding: 30px;
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border-left: 8px solid <%= actividad.getColor() %>;
+            border-left: 8px solid <%= actColor %>;
         }
         .header-top {
             display: flex;
@@ -69,7 +72,7 @@
             gap: 15px;
         }
         .titulo-principal i {
-            color: <%= actividad.getColor() %>;
+            color: <%= actColor %>;
         }
         .badges {
             display: flex;
@@ -114,20 +117,11 @@
         }
         .info-item i {
             font-size: 1.5rem;
-            color: <%= actividad.getColor() %>;
+            color: <%= actColor %>;
         }
-        .info-item-content {
-            flex: 1;
-        }
-        .info-label {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 3px;
-        }
-        .info-value {
-            font-weight: bold;
-            color: #333;
-        }
+        .info-item-content { flex: 1; }
+        .info-label { font-size: 0.85rem; color: #666; margin-bottom: 3px; }
+        .info-value { font-weight: bold; color: #333; }
         .btn {
             padding: 12px 24px;
             border: none;
@@ -186,9 +180,9 @@
             transform: translateX(5px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        .tarea-card.prioridad-alta { border-left-color: #dc3545; }
+        .tarea-card.prioridad-alta  { border-left-color: #dc3545; }
         .tarea-card.prioridad-media { border-left-color: #ffc107; }
-        .tarea-card.prioridad-baja { border-left-color: #28a745; }
+        .tarea-card.prioridad-baja  { border-left-color: #28a745; }
         .tarea-titulo {
             font-size: 1.2rem;
             font-weight: bold;
@@ -221,7 +215,6 @@
 </head>
 <body>
     <%
-        // Mostrar mensaje de éxito si la actividad fue recién creada
         String resultado = request.getParameter("res");
         if ("creada".equals(resultado)) {
     %>
@@ -257,19 +250,20 @@
             <div class="header-top">
                 <div class="header-info">
                     <h1 class="titulo-principal">
-                        <%= actividad.getTitulo() %>
+                        <%= actividad.getTitulo() != null ? actividad.getTitulo() : "Sin título" %>
                     </h1>
 
                     <div class="badges">
-                        <% if ("Alta".equals(actividad.getPrioridad())) { %>
+                        <% String prioridad = actividad.getPrioridad() != null ? actividad.getPrioridad() : "Baja";
+                           if ("Alta".equals(prioridad)) { %>
                             <span class="badge badge-alta"><i class="fas fa-exclamation-circle"></i> Prioridad Alta</span>
-                        <% } else if ("Media".equals(actividad.getPrioridad())) { %>
+                        <% } else if ("Media".equals(prioridad)) { %>
                             <span class="badge badge-media"><i class="fas fa-minus-circle"></i> Prioridad Media</span>
                         <% } else { %>
                             <span class="badge badge-baja"><i class="fas fa-check-circle"></i> Prioridad Baja</span>
                         <% } %>
-                        <span class="badge" style="background: <%= actividad.getColor() %>22; color: <%= actividad.getColor() %>; border: 2px solid <%= actividad.getColor() %>;">
-                            <%= actividad.getEstado() %>
+                        <span class="badge" style="background: <%= actColor %>22; color: <%= actColor %>; border: 2px solid <%= actColor %>;">
+                            <%= actividad.getEstado() != null ? actividad.getEstado() : "Sin estado" %>
                         </span>
                     </div>
                 </div>
@@ -288,7 +282,7 @@
 
             <% if (actividad.getDescripcion() != null && !actividad.getDescripcion().isEmpty()) { %>
                 <div class="descripcion">
-                    <i class="fas fa-align-left" style="color: <%= actividad.getColor() %>; margin-right: 10px;"></i>
+                    <i class="fas fa-align-left" style="color: <%= actColor %>; margin-right: 10px;"></i>
                     <%= actividad.getDescripcion() %>
                 </div>
             <% } %>
@@ -298,14 +292,14 @@
                     <i class="far fa-calendar"></i>
                     <div class="info-item-content">
                         <div class="info-label">Fecha Inicio</div>
-                        <div class="info-value"><%= actividad.getFecha_inicio() %></div>
+                        <div class="info-value"><%= actividad.getFecha_inicio() != null ? actividad.getFecha_inicio() : "No definida" %></div>
                     </div>
                 </div>
                 <div class="info-item">
                     <i class="far fa-calendar-check"></i>
                     <div class="info-item-content">
                         <div class="info-label">Fecha Fin</div>
-                        <div class="info-value"><%= actividad.getFecha_fin() %></div>
+                        <div class="info-value"><%= actividad.getFecha_fin() != null ? actividad.getFecha_fin() : "No definida" %></div>
                     </div>
                 </div>
                 <div class="info-item">
@@ -341,11 +335,12 @@
 
             <% if (listaTareas != null && !listaTareas.isEmpty()) { %>
                 <% for (Tarea tarea : listaTareas) {
-                    String clasePrioridad = "prioridad-" + tarea.getPrioridad().toLowerCase();
+                    String tPrioridad = tarea.getPrioridad() != null ? tarea.getPrioridad().toLowerCase() : "baja";
+                    String clasePrioridad = "prioridad-" + tPrioridad;
                 %>
                 <div class="tarea-card <%= clasePrioridad %>">
                     <div class="tarea-titulo">
-                        <%= tarea.getTitulo() %>
+                        <%= tarea.getTitulo() != null ? tarea.getTitulo() : "Sin título" %>
                         <% if ("Completada".equals(tarea.getEstado())) { %>
                             <i class="fas fa-check-circle" style="color: #28a745;"></i>
                         <% } %>
@@ -365,15 +360,15 @@
                         </span>
                         <span>
                             <i class="fas fa-exclamation-triangle"></i>
-                            <%= tarea.getPrioridad() %>
+                            <%= tarea.getPrioridad() != null ? tarea.getPrioridad() : "Sin prioridad" %>
                         </span>
                         <span>
                             <i class="fas fa-info-circle"></i>
-                            <%= tarea.getEstado() %>
+                            <%= tarea.getEstado() != null ? tarea.getEstado() : "Sin estado" %>
                         </span>
                         <span>
                             <i class="far fa-calendar"></i>
-                            Vence: <%= tarea.getFecha_vencimiento() %>
+                            Vence: <%= tarea.getFecha_vencimiento() != null ? tarea.getFecha_vencimiento() : "No definida" %>
                         </span>
                         <% if (esAdministrador) { %>
                         <a href="Tareaservlet?accion=editar&id=<%= tarea.getId() %>"
@@ -404,4 +399,3 @@
     </div>
 </body>
 </html>
-
