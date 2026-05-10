@@ -15,6 +15,8 @@ public class Tarea {
     private Date fechaInicio;
     private Date fechaVencimiento;
     private String nombreCategoria;
+    private String nombreUsuario;
+    private String nombreActividad;
 
     // ============================
     // GETTERS Y SETTERS PRINCIPALES
@@ -53,8 +55,13 @@ public class Tarea {
     public String getNombreCategoria() { return nombreCategoria; }
     public void setNombreCategoria(String nombreCategoria) { this.nombreCategoria = nombreCategoria; }
 
-    // ── Aliases legacy (para compatibilidad con servlets y JSPs que usan guion bajo) ──
-    public String getNombreActividad() { return null; }
+    public String getNombreUsuario() { return nombreUsuario; }
+    public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
+
+    public String getNombreActividad() { return nombreActividad; }
+    public void setNombreActividad(String nombreActividad) { this.nombreActividad = nombreActividad; }
+
+    // ── Aliases legacy
 
     public void setFecha_inicio(Date fechaInicio)       { this.fechaInicio = fechaInicio; }
     public void setFecha_vencimiento(Date fechaVenc)    { this.fechaVencimiento = fechaVenc; }
@@ -64,4 +71,7 @@ public class Tarea {
     public void setActividad_id(int actividadId)        { this.actividadId = actividadId; }
     public void setCategoria_id(int categoriaId)        { this.categoriaId = categoriaId; }
     public void setUsuario_id(int usuarioId)            { this.usuarioId = usuarioId; }
+    public int getActividad_id()                        { return this.actividadId; }
+    public int getCategoria_id()                        { return this.categoriaId; }
+    public int getUsuario_id()                          { return this.usuarioId; }
 }
